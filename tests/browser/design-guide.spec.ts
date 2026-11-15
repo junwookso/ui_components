@@ -1,0 +1,91 @@
+import { expect, test } from '@playwright/test'
+
+const story = '/iframe.html?id=foundations-design-guide--workplace&viewMode=story'
+
+for (const theme of ['neutral', 'ocean']) {
+  test(`${theme}: surfaces and enabled content have appropriate contrast`, async ({ page }) => {
+    await page.goto(`${story}&globals=theme:${theme}`)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('서비스 설정')
+    await expect(page.locator('.ui-preview')).toHaveCSS('background-color', 'rgb(244, 244, 245)')
+    await expect(page.locator('.ui-card').first()).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+    await expect(page.locator('.ui-card-header').first()).toHaveCSS('border-bottom-width', '0px')
+    const ratios = await page.evaluate(() => {
+      const ctx = document.createElement('canvas').getContext('2d')!
+      function rgb(color: string) {
+        ctx.clearRect(0, 0, 1, 1)
+        ctx.fillStyle = color
+        ctx.fillRect(0, 0, 1, 1)
+        return Array.from(ctx.getImageData(0, 0, 1, 1).data).slice(0, 3)
+      }
+      function luminance(color: string) {
+        return rgb(color).map(v => v / 255).map(v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
+          .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i]!, 0)
+      }
+      function contrast(a: string, b: string) {
+        const values = [luminance(a), luminance(b)].sort((a, b) => b - a)
+        return (values[0]! + 0.05) / (values[1]! + 0.05)
+      }
+      const styles = (selector: string) => getComputedStyle(document.querySelector(selector)!)
+      const input = styles('#guide-name')
+      const preview = styles('.ui-preview')
+      const muted = styles('.design-guide-heading p')
+      const button = styles('button[type="submit"]')
+      return {
+        primary: contrast(button.color, button.backgroundColor),
+        input: contrast(input.color, input.backgroundColor),
+        boundary: contrast(input.borderTopColor, input.backgroundColor),
+        help: contrast(muted.color, preview.backgroundColor),
+        statuses: ['success', 'warning', 'info'].map(name => {
+          const style = styles(`.design-feedback-${name}`)
+          return contrast(style.color, style.backgroundColor)
+        }),
+      }
+    })
+    expect(ratios.primary).toBeGreaterThanOrEqual(4.5)
+    expect(ratios.input).toBeGreaterThanOrEqual(4.5)
+    expect(ratios.help).toBeGreaterThanOrEqual(4.5)
+    expect(ratios.boundary).toBeGreaterThanOrEqual(3)
+    ratios.statuses.forEach(value => expect(value).toBeGreaterThanOrEqual(4.5))
+    await page.setViewportSize({ width: 375, height: 900 })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  })
+}
+
+test('service state tokens drive hover and pressed colors, loading blocks duplicate submission', async ({ page }) => {
+  await page.goto(`${story}&globals=theme:ocean`)
+  const save = page.getByRole('button', { name: '저장하기', exact: true })
+  await save.hover()
+  await expect(save).toHaveCSS('background-color', 'rgb(7, 89, 133)')
+  await page.mouse.down()
+  await expect(save).toHaveCSS('background-color', 'rgb(12, 74, 110)')
+  await page.mouse.up()
+  await expect(page.getByRole('button', { name: '저장 중', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: '저장 중', exact: true })).toHaveAttribute('aria-busy', 'true')
+  await expect(page.getByRole('button', { name: '취소', exact: true })).toBeDisabled()
+  await expect(page.getByRole('status').first()).toHaveText('프로젝트 정보를 저장했습니다.')
+  await expect(save).toBeEnabled()
+  const name = page.getByRole('textbox', { name: '프로젝트 이름 (필수)' })
+  await name.fill('')
+  await save.click()
+  await expect(name).toHaveAccessibleDescription('프로젝트 이름을 입력해 주세요.')
+  await name.fill('새 프로젝트')
+  await expect(name).not.toHaveAttribute('aria-invalid')
+  await page.getByRole('button', { name: '취소', exact: true }).click()
+  await expect(name).toHaveValue('사내 업무 포털')
+})
+
+test('nested primary override derives states and surface override applies across components', async ({ page }) => {
+  await page.goto(story)
+  await page.locator('.ui-preview').evaluate(el => {
+    const element = el as HTMLElement
+    element.style.setProperty('--ui-primary', '#0369a1')
+    element.style.setProperty('--ui-surface', '#f0f9ff')
+  })
+  const save = page.getByRole('button', { name: '저장하기', exact: true })
+  await expect(save).toHaveCSS('background-color', 'rgb(3, 105, 161)')
+  await save.hover()
+  await expect(save).not.toHaveCSS('background-color', 'rgb(3, 105, 161)')
+  await expect(page.locator('.ui-card').first()).toHaveCSS('background-color', 'rgb(240, 249, 255)')
+  await expect(page.locator('#guide-name')).toHaveCSS('background-color', 'rgb(240, 249, 255)')
+  await expect(page.getByRole('button', { name: '미리보기', exact: true })).toHaveCSS('background-color', 'rgb(240, 249, 255)')
+})

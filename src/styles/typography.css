@@ -1,0 +1,20 @@
+@layer components {
+  .ui-h1, .ui-h2, .ui-h3, .ui-h4, .ui-h5, .ui-h6, .ui-title, .ui-subtitle, .ui-body, .ui-body-lg, .ui-caption, .ui-label {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: normal;
+  }
+  .ui-h1 { font-size: 1.5rem; line-height: 2rem; font-weight: 600; }
+  .ui-h2 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 600; }
+  .ui-h3 { font-size: 1.125rem; line-height: 1.625rem; font-weight: 600; }
+  .ui-h4 { font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
+  .ui-h5 { font-size: 0.875rem; line-height: 1.25rem; font-weight: 600; }
+  .ui-h6 { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; }
+  .ui-title { font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
+  .ui-subtitle { font-size: 0.875rem; line-height: 1.25rem; font-weight: 400; }
+  .ui-body { font-size: 0.875rem; line-height: 1.375rem; font-weight: 400; }
+  .ui-body-lg { font-size: 1rem; line-height: 1.625rem; font-weight: 400; }
+  .ui-caption { font-size: 0.75rem; line-height: 1.125rem; font-weight: 400; }
+  .ui-label { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; }
+  .ui-text-muted { color: var(--ui-muted-foreground); }
+}

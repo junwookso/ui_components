@@ -1,0 +1,4 @@
+@import "tailwindcss" source(".");
+@import "@ui-components/vue/style.css";
+
+:root { --ui-primary: #0369a1; --ui-primary-foreground: #ffffff; }

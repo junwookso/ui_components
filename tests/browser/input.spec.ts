@@ -1,0 +1,128 @@
+import { readFile } from 'node:fs/promises'
+import { expect, test } from '@playwright/test'
+
+const story = (name: string) => `/iframe.html?id=components-uiinput--${name}&viewMode=story`
+
+test('form labels, model binding, validation, and submission work together', async ({ page }) => {
+  await page.goto(story('form'))
+  const name = page.getByRole('textbox', { name: '이름' })
+  const email = page.getByRole('textbox', { name: '이메일' })
+  await name.fill('   ')
+  await email.fill('user@example.com')
+  await page.getByRole('button', { name: '저장하기' }).click()
+  await expect(name).toHaveAttribute('aria-invalid', 'true')
+  await expect(name).toHaveAccessibleDescription('이름을 입력해 주세요.')
+  await name.fill('홍길동')
+  await page.getByRole('button', { name: '저장하기' }).click()
+  await expect(page.getByRole('status')).toHaveText('홍길동님의 정보를 저장했습니다.')
+  const formData = await page.locator('form').evaluate(form => Object.fromEntries(new FormData(form as HTMLFormElement)))
+  expect(formData).toEqual({ name: '홍길동', email: 'user@example.com' })
+  await email.fill('invalid')
+  await page.getByRole('button', { name: '저장하기' }).click()
+  await expect(page.getByRole('status')).toBeEmpty()
+  expect(await email.evaluate(el => (el as HTMLInputElement).validity.typeMismatch)).toBe(true)
+})
+
+test('keyboard skips disabled, keeps readonly selectable, and shows error focus', async ({ page }) => {
+  await page.goto(story('states'))
+  const enabled = page.getByRole('textbox', { name: '기본', exact: true })
+  await enabled.click()
+  await expect(enabled).toHaveCSS('border-top-color', 'rgb(30, 64, 175)')
+  await expect(enabled).toHaveCSS('outline-style', 'none')
+  await expect(enabled).toHaveCSS('border-top-width', '2px')
+  await expect(enabled).toHaveCSS('padding-left', '11px')
+  await expect(enabled).toHaveCSS('height', '40px')
+  await page.keyboard.press('Tab')
+  const readonly = page.getByRole('textbox', { name: '읽기 전용' })
+  await expect(readonly).toBeFocused()
+  await expect(readonly).toHaveCSS('border-top-color', 'rgb(30, 64, 175)')
+  await page.keyboard.type('changed')
+  await expect(readonly).toHaveValue('복사할 수 있는 값')
+  await expect(page.getByRole('textbox', { name: '비활성' })).toBeDisabled()
+  await page.keyboard.press('Tab')
+  const invalid = page.getByRole('textbox', { name: '이메일' })
+  await expect(invalid).toBeFocused()
+  await expect(invalid).toHaveCSS('outline-style', 'none')
+  await expect(invalid).toHaveCSS('border-top-color', 'rgb(185, 28, 28)')
+  await expect(invalid).toHaveAccessibleDescription('올바른 이메일 주소를 입력해 주세요.')
+})
+
+test('input sizing and packaged CSS work without global reset and honor theme tokens', async ({ page }) => {
+  await page.goto(story('sizes'))
+  await expect(page.getByRole('textbox', { name: 'Small' })).toHaveCSS('height', '32px')
+  await expect(page.getByRole('textbox', { name: 'Large' })).toHaveCSS('height', '48px')
+  const input = page.getByRole('textbox', { name: 'Default' })
+  await expect(input).toHaveCSS('height', '40px')
+  const markup = await input.evaluate(el => el.outerHTML)
+  await page.goto('about:blank')
+  await page.setContent(`<h1>Untouched</h1>${markup}`)
+  await page.addStyleTag({ content: await readFile('.test-consumer/no-reset.css', 'utf8') })
+  const standalone = page.locator('input')
+  await expect(standalone).toHaveCSS('height', '40px')
+  await expect(standalone).toHaveCSS('border-top-width', '1px')
+  await expect(standalone).toHaveCSS('font-size', '14px')
+  await expect(page.locator('h1')).toHaveCSS('font-size', '32px')
+  await page.addStyleTag({ content: ':root { --ui-control-border: #0369a1; --ui-info-foreground: #0284c7; }' })
+  await expect(standalone).toHaveCSS('border-top-color', 'rgb(3, 105, 161)')
+  await standalone.focus()
+  await expect(standalone).toHaveCSS('border-top-color', 'rgb(2, 132, 199)')
+  await expect(standalone).toHaveCSS('outline-style', 'none')
+})
+
+test('prefix and suffix icons reserve text space, preserve focus, and work without reset', async ({ page }) => {
+  await page.goto(story('icon-sizes'))
+  const wrappers = page.locator('.ui-input-wrapper')
+  await expect(wrappers).toHaveCount(3)
+  for (let index = 0; index < 3; index++) {
+    const wrapper = wrappers.nth(index)
+    await expect(wrapper.locator('input')).toHaveCSS('height', `${[32, 40, 48][index]}px`)
+    await expect(wrapper.locator('input')).toHaveCSS('padding-left', '40px')
+    await expect(wrapper.locator('input')).toHaveCSS('padding-right', '40px')
+    for (const side of ['prefix', 'suffix']) {
+      const icon = wrapper.locator(`.ui-input-${side}`)
+      await expect(icon.locator('svg')).toHaveCSS('width', '16px')
+      const inputBox = (await wrapper.locator('input').boundingBox())!
+      const iconBox = (await icon.boundingBox())!
+      expect(Math.abs(iconBox.y + iconBox.height / 2 - inputBox.y - inputBox.height / 2)).toBeLessThan(1)
+    }
+  }
+  // Clicking through a decorative icon still focuses the native input.
+  const iconBox = (await wrappers.first().locator('.ui-input-prefix').boundingBox())!
+  await page.mouse.click(iconBox.x + 8, iconBox.y + 8)
+  await expect(wrappers.first().locator('input')).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(wrappers.nth(1).locator('input')).toBeFocused()
+  const markup = await wrappers.first().evaluate(el => el.outerHTML)
+  await page.goto('about:blank')
+  await page.setContent(markup)
+  await page.addStyleTag({ content: await readFile('.test-consumer/no-reset.css', 'utf8') })
+  await expect(page.locator('input')).toHaveCSS('padding-left', '40px')
+  await expect(page.locator('.ui-input-suffix')).toHaveCSS('position', 'absolute')
+  await expect(page.locator('.ui-input-suffix svg')).toHaveCSS('height', '16px')
+})
+
+test('icon input forwards labels and disabled state, and inline forms remain aligned on mobile', async ({ page }) => {
+  await page.goto(story('with-icons'))
+  await expect(page.getByRole('searchbox', { name: '앞 아이콘 · 검색' })).toBeEditable()
+  await expect(page.getByRole('textbox', { name: '뒤 아이콘 · 이메일' })).toBeEditable()
+  const readonly = page.getByRole('textbox', { name: '양쪽 아이콘 · 인증된 이메일' })
+  await expect(readonly).not.toBeEditable()
+  await expect(readonly).toHaveAccessibleDescription('인증이 완료된 이메일입니다.')
+  await page.goto(story('with-icons') + '&args=disabled:true;invalid:true')
+  await expect(page.locator('#icon-prefix')).toBeDisabled()
+  await expect(page.locator('.ui-input-prefix').first()).toHaveCSS('color', 'rgb(113, 113, 122)')
+  await expect(page.locator('#icon-prefix')).toHaveCSS('background-color', 'rgb(228, 228, 231)')
+  await page.setViewportSize({ width: 375, height: 700 })
+  await page.goto(story('inline-form'))
+  const form = page.getByRole('form', { name: 'default 검색 폼', exact: true })
+  const input = form.getByRole('searchbox')
+  await input.fill('검색')
+  await input.press('Enter')
+  await expect(form.getByRole('status')).toContainText('검색')
+  const inputBox = (await input.boundingBox())!
+  const buttonBox = (await form.getByRole('button').boundingBox())!
+  expect(inputBox.height).toBe(buttonBox.height)
+  expect(inputBox.y).toBe(buttonBox.y)
+  expect(buttonBox.x - inputBox.x - inputBox.width).toBe(8)
+  expect(buttonBox.x + buttonBox.width).toBeLessThanOrEqual(375)
+})

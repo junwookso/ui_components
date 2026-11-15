@@ -1,0 +1,29 @@
+:root {
+  --ui-overlay: rgb(0 0 0 / 40%);
+  --ui-page-background: #f4f4f5;
+  --ui-background: #ffffff;
+  --ui-foreground: #18181b;
+  --ui-primary: #18181b;
+  --ui-primary-foreground: #ffffff;
+  --ui-secondary: #f4f4f5;
+  --ui-secondary-foreground: #18181b;
+  --ui-accent: #f4f4f5;
+  --ui-accent-foreground: #18181b;
+  --ui-destructive: #b91c1c;
+  --ui-destructive-foreground: #ffffff;
+  --ui-border: #d4d4d8;
+  --ui-muted-foreground: #52525b;
+  --ui-control-border: #71717a;
+  --ui-control-border-hover: #52525b;
+  --ui-disabled-background: #e4e4e7;
+  --ui-disabled-foreground: #71717a;
+  --ui-selected-background: #e4e4e7;
+  --ui-selected-foreground: #18181b;
+  --ui-success-background: #f0fdf4;
+  --ui-success-foreground: #166534;
+  --ui-warning-background: #fffbeb;
+  --ui-warning-foreground: #92400e;
+  --ui-info-background: #eff6ff;
+  --ui-info-foreground: #1e40af;
+  --ui-ring: #71717a;
+}
