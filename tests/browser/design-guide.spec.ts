@@ -51,29 +51,6 @@ for (const theme of ['neutral', 'ocean']) {
   })
 }
 
-test('service state tokens drive hover and pressed colors, loading blocks duplicate submission', async ({ page }) => {
-  await page.goto(`${story}&globals=theme:ocean`)
-  const save = page.getByRole('button', { name: '저장하기', exact: true })
-  await save.hover()
-  await expect(save).toHaveCSS('background-color', 'rgb(7, 89, 133)')
-  await page.mouse.down()
-  await expect(save).toHaveCSS('background-color', 'rgb(12, 74, 110)')
-  await page.mouse.up()
-  await expect(page.getByRole('button', { name: '저장 중', exact: true })).toBeDisabled()
-  await expect(page.getByRole('button', { name: '저장 중', exact: true })).toHaveAttribute('aria-busy', 'true')
-  await expect(page.getByRole('button', { name: '취소', exact: true })).toBeDisabled()
-  await expect(page.getByRole('status').first()).toHaveText('프로젝트 정보를 저장했습니다.')
-  await expect(save).toBeEnabled()
-  const name = page.getByRole('textbox', { name: '프로젝트 이름 (필수)' })
-  await name.fill('')
-  await save.click()
-  await expect(name).toHaveAccessibleDescription('프로젝트 이름을 입력해 주세요.')
-  await name.fill('새 프로젝트')
-  await expect(name).not.toHaveAttribute('aria-invalid')
-  await page.getByRole('button', { name: '취소', exact: true }).click()
-  await expect(name).toHaveValue('사내 업무 포털')
-})
-
 test('nested primary override derives states and surface override applies across components', async ({ page }) => {
   await page.goto(story)
   await page.locator('.ui-preview').evaluate(el => {

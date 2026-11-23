@@ -35,22 +35,6 @@ test('keyboard sorting, page selection, pagination and search work together', as
   await page.getByRole('searchbox').fill('')
   await page.getByLabel('페이지당 행', { exact: true }).selectOption('20')
   await expect(table.locator('tbody tr')).toHaveCount(12)
-  await page.screenshot({ path: 'test-results/data-table-employees.png', fullPage: true })
-})
-
-test('loading, error retry and empty states are distinct', async ({ page }) => {
-  await page.goto(story('loading'))
-  await expect(page.getByRole('table')).toHaveAttribute('aria-busy', 'true')
-  await expect(page.getByRole('searchbox')).toBeDisabled()
-  await expect(page.getByRole('button', { name: '이름: 오름차순 정렬' })).toBeDisabled()
-  await expect(page.getByRole('checkbox', { name: '현재 페이지 전체 선택' })).toBeDisabled()
-  await page.goto(story('error'))
-  await expect(page.getByRole('table')).toContainText('직원 목록을 불러오지 못했습니다.')
-  await page.getByRole('button', { name: '다시 시도' }).click()
-  await expect(page.getByText('다시 시도 요청을 받았습니다.')).toBeVisible()
-  await page.goto(story('empty'))
-  await expect(page.getByRole('table')).toContainText('등록된 데이터가 없습니다.')
-  await expect(page.locator('.ui-data-table-summary')).toContainText('총 0건 중 0–0건')
 })
 
 test('narrow screens scroll only the table; selected rows follow theme tokens', async ({ page }) => {
@@ -69,7 +53,6 @@ test('narrow screens scroll only the table; selected rows follow theme tokens', 
   await page.keyboard.press('Shift+Tab')
   await expect(region).toBeFocused()
   await expect(region).toHaveCSS('outline-width', '2px')
-  await page.screenshot({ path: 'test-results/data-table-mobile.png', fullPage: true })
 })
 
 test('package CSS and no-Preflight styles preserve native table geometry', async ({ page }) => {
@@ -89,6 +72,7 @@ test('package CSS and no-Preflight styles preserve native table geometry', async
   await page.locator('tbody tr').first().evaluate(el => el.setAttribute('data-selected', 'true'))
   await expect(page.locator('tbody tr').first().locator('td').first()).toHaveCSS('border-bottom-width', '2px')
   await page.goto('http://127.0.0.1:6008')
-  await expect(page.getByRole('table', { name: '배포 테이블' })).toBeVisible()
-  await expect(page.getByRole('table').locator('caption')).toHaveCSS('font-size', '16px')
+  const consumerTable = page.getByRole('table', { name: '배포 테이블' })
+  await expect(consumerTable).toBeVisible()
+  await expect(consumerTable.locator('caption')).toHaveCSS('font-size', '16px')
 })

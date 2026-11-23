@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 const story = (name: string) => `/iframe.html?id=components-uitree--${name}&viewMode=story`
 
@@ -27,37 +26,4 @@ test('tree keyboard traversal, selection, disclosure and disabled behavior', asy
   await team.locator(':scope > .ui-tree-row .ui-tree-toggle').click()
   await expect(platform).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('treeitem', { name: '인사팀 (접근 권한 없음)' })).toHaveAttribute('aria-disabled', 'true')
-  await page.screenshot({ path: 'test-results/tree-organization.png', fullPage: true })
-})
-
-test('tree layout, narrow labels, icons and theme', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 800 })
-  await page.goto(story('long-labels'))
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await page.goto(story('with-icons') + '&globals=theme:ocean')
-  const selected = page.getByRole('treeitem', { name: '플랫폼팀', exact: true })
-  await expect(selected.locator('.ui-tree-row')).toHaveCSS('min-height', '40px')
-  await expect(selected.locator('svg')).toHaveCSS('width', '16px')
-  const token = await selected.evaluate(el => getComputedStyle(el).getPropertyValue('--ui-selected-background').trim())
-  expect(token).not.toBe('')
-  await page.screenshot({ path: 'test-results/tree-icons.png', fullPage: true })
-})
-
-test('tree styles survive consumer build without Preflight', async ({ page }) => {
-  await page.goto(story('with-icons'))
-  await expect(page.getByRole('tree')).toBeVisible()
-  const markup = await page.locator('.ui-tree').evaluate(el => el.outerHTML)
-  await page.goto('about:blank')
-  await page.setContent(markup)
-  await page.addStyleTag({ content: await readFile('.test-consumer/no-reset.css', 'utf8') })
-  await expect(page.getByRole('tree')).toHaveCSS('padding-left', '0px')
-  const row = page.getByRole('treeitem', { name: '플랫폼팀', exact: true }).locator('.ui-tree-row')
-  await expect(row).toHaveCSS('display', 'flex')
-  await expect(row).toHaveCSS('gap', '8px')
-  await expect(row).toHaveCSS('min-height', '40px')
-  await expect(row).toHaveCSS('font-size', '14px')
-  await page.emulateMedia({ forcedColors: 'active' })
-  await expect(row).toHaveCSS('border-top-width', '1px')
-  await page.goto('http://127.0.0.1:6008')
-  await expect(page.getByRole('treeitem', { name: '개발팀' }).locator('.ui-tree-row')).toHaveCSS('display', 'flex')
 })

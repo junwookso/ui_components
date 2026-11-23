@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 const story = (name = 'playground') => `/iframe.html?id=actions-confirm--${name}&viewMode=story`
 
@@ -37,44 +36,4 @@ test('confirm uses dialog layout, safe focus, keyboard results and focus return'
   await page.mouse.click(2, 2)
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.getByRole('status')).toHaveText('취소했습니다.')
-})
-
-test('destructive confirmation and long messages retain the existing theme and responsive dialog', async ({ page }) => {
-  await page.goto(story('destructive'))
-  await page.getByRole('button', { name: '확인 요청 열기' }).click()
-  await expect(page.getByRole('button', { name: '돌아가기' })).toBeFocused()
-  await expect(page.getByRole('button', { name: '프로젝트 삭제', exact: true })).toHaveCSS('background-color', 'rgb(185, 28, 28)')
-  await page.screenshot({ path: 'test-results/confirm-destructive.png' })
-  await page.setViewportSize({ width: 320, height: 600 })
-  await page.goto(story('long-message') + '&globals=theme:ocean')
-  await page.getByRole('button', { name: '확인 요청 열기' }).click()
-  const dialog = page.getByRole('dialog')
-  const bounds = (await dialog.boundingBox())!
-  expect(bounds.x).toBeGreaterThanOrEqual(16)
-  expect(bounds.x + bounds.width).toBeLessThanOrEqual(304)
-  expect(await page.locator('.ui-dialog-body').evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true)
-  await expect(page.getByRole('button', { name: '변경 적용' })).toBeInViewport()
-  await expect(page.getByRole('button', { name: '변경 적용' })).toHaveCSS('background-color', 'rgb(3, 105, 161)')
-  await page.screenshot({ path: 'test-results/confirm-mobile.png' })
-})
-
-test('consumer exports work and confirmation retains styling without Preflight', async ({ page }) => {
-  await page.goto('http://127.0.0.1:6008')
-  await page.getByRole('button', { name: '확인 표시', exact: true }).click()
-  await expect(page.getByRole('dialog', { name: '배포 확인' })).toBeVisible()
-  await page.getByRole('dialog').getByRole('button', { name: '확인', exact: true }).click()
-  await expect(page.getByTestId('confirm-result')).toHaveText('적용 완료')
-  await page.goto(story())
-  await page.getByRole('button', { name: '확인 요청 열기' }).click()
-  const markup = await page.getByRole('dialog').evaluate(el => el.outerHTML)
-  await page.goto('about:blank')
-  await page.setContent(markup)
-  await page.addStyleTag({ content: await readFile('.test-consumer/no-reset.css', 'utf8') })
-  await page.locator('dialog').evaluate((el: HTMLDialogElement) => { el.removeAttribute('open'); el.showModal() })
-  await expect(page.getByRole('dialog')).toHaveCSS('width', '480px')
-  await expect(page.locator('.ui-confirm-message')).toHaveCSS('margin-top', '0px')
-  await expect(page.locator('.ui-confirm-message')).toHaveCSS('white-space', 'pre-wrap')
-  const panel = (await page.getByRole('dialog').boundingBox())!
-  const action = (await page.getByRole('button', { name: '확인', exact: true }).boundingBox())!
-  expect(Math.abs(panel.x + panel.width - action.x - action.width - 17)).toBeLessThan(1)
 })

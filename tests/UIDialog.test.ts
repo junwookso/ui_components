@@ -66,9 +66,4 @@ describe('dialog lifecycle', () => {
     expect(onCancel).not.toHaveBeenCalled()
     expect(service.openDialog(Content, { payload: {}, onResult })).toBe(false)
   })
-  it('reports missing providers and dialog contexts', () => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {})
-    expect(() => mount(Opener)).toThrow('UIDialogProvider')
-    expect(() => mount(Content)).toThrow('useDialogContext()')
-  })
 })

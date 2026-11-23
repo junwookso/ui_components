@@ -1,9 +1,9 @@
-import { h, ref, type DefineComponent } from 'vue'
+import { h, nextTick, onUnmounted, ref, watch, type DefineComponent } from 'vue'
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import UIDataTable from './UIDataTable.vue'
 import UIButton from '../button/UIButton.vue'
 import UIChip from '../chip/UIChip.vue'
-import type { UIDataTableColumn, UIDataTableRowSelection, UIDataTableProps } from './types'
+import type { UIDataTableColumn, UIDataTablePagination, UIDataTableRowSelection, UIDataTableSorting, UIDataTableProps } from './types'
 
 interface Employee { id: string; name: string; team: string; email: string; projects: number; status: string }
 const names = ['김민수', '이서연', '박지훈', '최유진', '정도현', '강하은', '조현우', '윤수빈', '장지우', '임준서', '한예린', '오시우']
@@ -47,4 +47,124 @@ export const NoResults: Story = { args: { globalFilter: '일치하지 않는 검
 export const Error: Story = { args: { error: '직원 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.' } }
 export const CustomCells: Story = {
   args: { columns: [...columns, { id: 'actions', header: '작업', enableSorting: false, cell: ({ row }) => h(UIButton, { size: 'sm', variant: 'outline', onClick: () => window.alert(`${row.original.name} 상세 보기 예제`) }, () => '상세 보기') }] },
+}
+
+interface EmployeeQuery extends UIDataTablePagination {
+  keyword: string
+  sorting: UIDataTableSorting[number] | undefined
+}
+
+interface EmployeePage {
+  rows: Employee[]
+  totalRows: number
+}
+
+const sortableFields = ['name', 'team', 'email', 'projects'] as const
+const collator = new Intl.Collator('ko', { numeric: true })
+
+function fetchEmployeePage(query: EmployeeQuery, shouldFail: boolean): Promise<EmployeePage> {
+  const delay = query.keyword === '플랫폼' ? 900 : 250
+  return new Promise((resolve, reject) => setTimeout(() => {
+    if (shouldFail) {
+      reject(new globalThis.Error('직원 목록을 불러오지 못했습니다. 다시 시도해 주세요.'))
+      return
+    }
+    const matching = data.filter(employee =>
+      [employee.name, employee.team, employee.email].some(text => text.toLowerCase().includes(query.keyword)),
+    )
+    const sortKey = sortableFields.find(key => key === query.sorting?.id)
+    if (sortKey) {
+      const direction = query.sorting?.desc ? -1 : 1
+      matching.sort((left, right) => direction * collator.compare(String(left[sortKey]), String(right[sortKey])))
+    }
+    const offset = query.pageIndex * query.pageSize
+    resolve({ rows: matching.slice(offset, offset + query.pageSize), totalRows: matching.length })
+  }, delay))
+}
+
+export const Server: Story = {
+  parameters: {
+    controls: { disable: true },
+    docs: { description: { story: '모의 API가 현재 페이지의 행과 전체 건수를 반환합니다. 버튼으로 응답 순서 역전과 일시적인 실패를 재현할 수 있습니다.' } },
+  },
+  render: () => ({
+    components: { UIDataTable: EmployeeTable, UIButton, UIChip },
+    setup: () => {
+      const page = ref<EmployeePage>({ rows: [], totalRows: 0 })
+      const pagination = ref<UIDataTablePagination>({ pageIndex: 0, pageSize: 5 })
+      const sorting = ref<UIDataTableSorting>([])
+      const search = ref('')
+      const selection = ref<UIDataTableRowSelection>({})
+      const tableArea = ref<HTMLElement | null>(null)
+      const loading = ref(false)
+      const error = ref('')
+      let requestId = 0
+      let raceTimer: ReturnType<typeof setTimeout> | undefined
+
+      async function load(shouldFail = false) {
+        const id = ++requestId
+        loading.value = true
+        error.value = ''
+        const query = {
+          ...pagination.value,
+          keyword: search.value.trim().toLowerCase(),
+          sorting: sorting.value[0],
+        }
+        try {
+          const result = await fetchEmployeePage(query, shouldFail)
+          if (id === requestId) page.value = result
+        } catch (cause) {
+          if (id === requestId) error.value = cause instanceof globalThis.Error ? cause.message : '목록을 불러오지 못했습니다.'
+        } finally {
+          if (id === requestId) loading.value = false
+        }
+      }
+
+      async function retry() {
+        void load()
+        await nextTick()
+        tableArea.value?.querySelector<HTMLElement>('[role="region"]')?.focus()
+      }
+
+      function simulateOutOfOrder() {
+        clearTimeout(raceTimer)
+        const first = search.value === '플랫폼' ? ' 플랫폼' : '플랫폼'
+        search.value = first
+        raceTimer = setTimeout(() => {
+          if (search.value === first) search.value = '이서연'
+        }, 100)
+      }
+
+      watch([pagination, sorting, search], () => { void load() }, { immediate: true, flush: 'post' })
+      onUnmounted(() => {
+        requestId++
+        clearTimeout(raceTimer)
+      })
+
+      return { page, pagination, sorting, search, selection, tableArea, loading, error, load, retry, simulateOutOfOrder, columns, getRowId: (row: Employee) => row.id }
+    },
+    template: `
+      <main class="mx-auto grid w-full min-w-0 max-w-5xl gap-4 px-4 py-6 sm:px-6">
+        <header class="grid gap-1">
+          <h1 class="ui-h1">직원 목록 서버 조회</h1>
+          <p class="ui-subtitle ui-text-muted">응답 순서 체험은 플랫폼팀을 먼저 검색한 뒤 이서연의 결과를 먼저 받습니다.</p>
+        </header>
+        <div class="flex flex-wrap justify-end gap-2">
+          <UIButton variant="outline" size="sm" :disabled="loading" @click="simulateOutOfOrder">응답 순서 체험</UIButton>
+          <UIButton variant="outline" size="sm" :disabled="loading" @click="load(true)">조회 실패 체험</UIButton>
+        </div>
+        <div ref="tableArea" class="min-w-0">
+          <UIDataTable mode="server" label="서버 직원 목록" searchable selectable
+            :data="page.rows" :total-rows="page.totalRows" :columns="columns" :get-row-id="getRowId"
+            :get-row-label="row => row.name"
+            v-model:pagination="pagination" v-model:sorting="sorting" v-model:global-filter="search"
+            v-model:row-selection="selection" :loading="loading" :error="error" @retry="retry">
+            <template #cell-status="{ row }">
+              <UIChip :label="row.status" size="sm" :variant="row.status === '휴직' ? 'default' : 'success'" />
+            </template>
+          </UIDataTable>
+        </div>
+      </main>
+    `,
+  }),
 }

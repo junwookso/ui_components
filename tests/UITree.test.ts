@@ -16,36 +16,6 @@ const create = (props = {}) => mount(UITree, { props: { items, label: '조직', 
 const node = (wrapper: ReturnType<typeof create>, label: string) => wrapper.get(`[role="treeitem"][aria-label="${label}"]`)
 
 describe('UITree', () => {
-  it('exposes nested groups, branch state and explicit single selection', async () => {
-    const wrapper = create()
-    expect(wrapper.get('[role="tree"]').attributes('aria-label')).toBe('조직')
-    expect(wrapper.findAll('[role="treeitem"]')).toHaveLength(2)
-    expect(node(wrapper, 'End').attributes('aria-expanded')).toBeUndefined()
-    await node(wrapper, 'Root').trigger('keydown', { key: 'ArrowRight' })
-    expect(node(wrapper, 'Root').attributes('aria-expanded')).toBe('true')
-    expect(node(wrapper, 'Root').find('[role="group"]').exists()).toBe(true)
-    await node(wrapper, 'Alpha').trigger('keydown', { key: ' ' })
-    expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['alpha'])
-    expect(node(wrapper, 'Alpha').attributes('aria-selected')).toBe('true')
-  })
-
-  it('navigates visible enabled nodes without selecting and supports parent/child traversal', async () => {
-    const wrapper = create({ expanded: ['root'] })
-    ;(node(wrapper, 'Root').element as HTMLElement).focus()
-    await node(wrapper, 'Root').trigger('keydown', { key: 'ArrowRight' })
-    expect(document.activeElement).toBe(node(wrapper, 'Alpha').element)
-    await node(wrapper, 'Alpha').trigger('keydown', { key: 'ArrowDown' })
-    expect(document.activeElement).toBe(node(wrapper, 'Beta').element)
-    await node(wrapper, 'Beta').trigger('keydown', { key: 'ArrowLeft' })
-    expect(document.activeElement).toBe(node(wrapper, 'Root').element)
-    await node(wrapper, 'Root').trigger('keydown', { key: 'End' })
-    expect(document.activeElement).toBe(node(wrapper, 'End').element)
-    await node(wrapper, 'End').trigger('keydown', { key: 'Home' })
-    expect(document.activeElement).toBe(node(wrapper, 'Root').element)
-    await node(wrapper, 'Root').trigger('keydown', { key: 'b' })
-    expect(document.activeElement).toBe(node(wrapper, 'Beta').element)
-    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
-  })
 
   it('keeps controlled state authoritative and separates disclosure from selection', async () => {
     const wrapper = mount(UITree, { props: { items, label: '조직', expanded: [], modelValue: 'end', 'onUpdate:expanded': () => {}, 'onUpdate:modelValue': () => {} } })

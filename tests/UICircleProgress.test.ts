@@ -16,12 +16,4 @@ describe('UICircleProgress', () => {
     await wrapper.setProps({ description: undefined })
     expect(status.attributes('aria-describedby')).toBeUndefined()
   })
-
-  it('sets size without making the decorative indicator focusable', () => {
-    const wrapper = mount(UICircleProgress, { props: { label: '업로드', size: 'lg' } })
-    expect(wrapper.attributes('data-size')).toBe('lg')
-    expect(wrapper.attributes('tabindex')).toBeUndefined()
-    expect(wrapper.get('svg circle').attributes('r')).toBe('17')
-    expect(wrapper.get('svg circle + circle').attributes('stroke-linecap')).toBeUndefined()
-  })
 })

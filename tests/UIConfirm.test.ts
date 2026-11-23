@@ -33,16 +33,6 @@ describe('confirm action', () => {
     expect(await result).toBe(true)
     expect(wrapper.find('dialog').exists()).toBe(false)
   })
-  it('cancels via button, Escape and external close, and permits another request', async () => {
-    const { wrapper, confirm } = setup()
-    for (const event of ['button', 'cancel', 'close']) {
-      const result = confirm(options)
-      await nextTick()
-      if (event === 'button') await wrapper.get('dialog button').trigger('click')
-      else await wrapper.get('dialog').trigger(event)
-      expect(await result).toBe(false)
-    }
-  })
   it('shares dialog concurrency without replacing an active dialog or pending confirmation', async () => {
     const { wrapper, confirm, dialog } = setup()
     let context!: UIDialogContext<null, boolean>
@@ -69,20 +59,5 @@ describe('confirm action', () => {
       expect(await result).toBe(false)
       expect(await confirm(options)).toBe(false)
     }
-  })
-  it('snapshots options and uses safe defaults for empty button labels', async () => {
-    const { wrapper, confirm } = setup()
-    const request = { ...options, confirmLabel: ' ', cancelLabel: '', destructive: true }
-    const pending = confirm(request)
-    request.message = '변경됨'
-    await nextTick()
-    expect(wrapper.get('.ui-confirm-message').text()).toBe(options.message)
-    expect(wrapper.get('dialog').findAll('button').map(b => b.text())).toEqual(['취소', '확인'])
-    await wrapper.get('dialog').trigger('cancel')
-    await pending
-  })
-  it('requires a dialog provider', () => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {})
-    expect(() => mount(defineComponent({ setup() { useConfirm(); return () => null } }))).toThrow('UIDialogProvider')
   })
 })

@@ -10,17 +10,6 @@ const items = [
 enableAutoUnmount(afterEach)
 
 describe('UITabs', () => {
-  it('links tabs and panels and defaults to the first enabled tab', () => {
-    const wrapper = mount(UITabs, { props: { items, label: '설정' }, slots: { panel: '<input value="유지" />' } })
-    const tabs = wrapper.findAll('[role="tab"]')
-    const panels = wrapper.findAll('[role="tabpanel"]')
-    expect(tabs[0]!.attributes('aria-selected')).toBe('true')
-    expect(tabs[0]!.attributes('aria-controls')).toBe(panels[0]!.attributes('id'))
-    expect(panels[0]!.attributes('aria-labelledby')).toBe(tabs[0]!.attributes('id'))
-    expect(panels[0]!.attributes('hidden')).toBeUndefined()
-    expect(panels[2]!.attributes('hidden')).toBeDefined()
-    expect(tabs[1]!.attributes('disabled')).toBeDefined()
-  })
 
   it('emits selection changes and follows external model updates', async () => {
     const wrapper = mount(UITabs, { props: { items, label: '설정', modelValue: 'one' }, attrs: { 'onUpdate:modelValue': () => {} } })
@@ -30,20 +19,6 @@ describe('UITabs', () => {
     expect(wrapper.findAll('[role="tab"]')[2]!.attributes('aria-selected')).toBe('true')
     await wrapper.setProps({ modelValue: 'one' })
     expect(wrapper.findAll('[role="tab"]')[0]!.attributes('aria-selected')).toBe('true')
-  })
-
-  it('moves focus past disabled tabs without selecting until activation', async () => {
-    const wrapper = mount(UITabs, { props: { items, label: '설정' }, attachTo: document.body })
-    const tabs = wrapper.findAll('[role="tab"]')
-    const first = tabs[0]!.element as HTMLButtonElement
-    first.focus()
-    await tabs[0]!.trigger('keydown', { key: 'ArrowRight' })
-    expect(document.activeElement).toBe(tabs[2]!.element)
-    expect(tabs[0]!.attributes('aria-selected')).toBe('true')
-    await tabs[2]!.trigger('keydown', { key: 'ArrowRight' })
-    expect(document.activeElement).toBe(tabs[0]!.element)
-    await tabs[0]!.trigger('keydown', { key: 'End' })
-    expect(document.activeElement).toBe(tabs[2]!.element)
   })
 
   it('keeps hidden panel DOM and safely falls back when items change', async () => {

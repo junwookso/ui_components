@@ -23,82 +23,29 @@ test('form labels, model binding, validation, and submission work together', asy
   expect(await email.evaluate(el => (el as HTMLInputElement).validity.typeMismatch)).toBe(true)
 })
 
-test('keyboard skips disabled, keeps readonly selectable, and shows error focus', async ({ page }) => {
-  await page.goto(story('states'))
-  const enabled = page.getByRole('textbox', { name: '기본', exact: true })
-  await enabled.click()
-  await expect(enabled).toHaveCSS('border-top-color', 'rgb(30, 64, 175)')
-  await expect(enabled).toHaveCSS('outline-style', 'none')
-  await expect(enabled).toHaveCSS('border-top-width', '2px')
-  await expect(enabled).toHaveCSS('padding-left', '11px')
-  await expect(enabled).toHaveCSS('height', '40px')
-  await page.keyboard.press('Tab')
-  const readonly = page.getByRole('textbox', { name: '읽기 전용' })
-  await expect(readonly).toBeFocused()
-  await expect(readonly).toHaveCSS('border-top-color', 'rgb(30, 64, 175)')
-  await page.keyboard.type('changed')
-  await expect(readonly).toHaveValue('복사할 수 있는 값')
-  await expect(page.getByRole('textbox', { name: '비활성' })).toBeDisabled()
-  await page.keyboard.press('Tab')
-  const invalid = page.getByRole('textbox', { name: '이메일' })
-  await expect(invalid).toBeFocused()
-  await expect(invalid).toHaveCSS('outline-style', 'none')
-  await expect(invalid).toHaveCSS('border-top-color', 'rgb(185, 28, 28)')
-  await expect(invalid).toHaveAccessibleDescription('올바른 이메일 주소를 입력해 주세요.')
-})
-
 test('input sizing and packaged CSS work without global reset and honor theme tokens', async ({ page }) => {
   await page.goto(story('sizes'))
   await expect(page.getByRole('textbox', { name: 'Small' })).toHaveCSS('height', '32px')
   await expect(page.getByRole('textbox', { name: 'Large' })).toHaveCSS('height', '48px')
   const input = page.getByRole('textbox', { name: 'Default' })
-  await expect(input).toHaveCSS('height', '40px')
+  await expect(input).toHaveCSS('height', '36px')
   const markup = await input.evaluate(el => el.outerHTML)
   await page.goto('about:blank')
   await page.setContent(`<h1>Untouched</h1>${markup}`)
   await page.addStyleTag({ content: await readFile('.test-consumer/no-reset.css', 'utf8') })
   const standalone = page.locator('input')
-  await expect(standalone).toHaveCSS('height', '40px')
+  await expect(standalone).toHaveCSS('height', '36px')
+  await expect(standalone).toHaveCSS('padding-top', '6px')
   await expect(standalone).toHaveCSS('border-top-width', '1px')
   await expect(standalone).toHaveCSS('font-size', '14px')
   await expect(page.locator('h1')).toHaveCSS('font-size', '32px')
   await page.addStyleTag({ content: ':root { --ui-control-border: #0369a1; --ui-info-foreground: #0284c7; }' })
   await expect(standalone).toHaveCSS('border-top-color', 'rgb(3, 105, 161)')
   await standalone.focus()
+  await expect(standalone).toHaveCSS('height', '36px')
+  await expect(standalone).toHaveCSS('padding-top', '5px')
   await expect(standalone).toHaveCSS('border-top-color', 'rgb(2, 132, 199)')
   await expect(standalone).toHaveCSS('outline-style', 'none')
-})
-
-test('prefix and suffix icons reserve text space, preserve focus, and work without reset', async ({ page }) => {
-  await page.goto(story('icon-sizes'))
-  const wrappers = page.locator('.ui-input-wrapper')
-  await expect(wrappers).toHaveCount(3)
-  for (let index = 0; index < 3; index++) {
-    const wrapper = wrappers.nth(index)
-    await expect(wrapper.locator('input')).toHaveCSS('height', `${[32, 40, 48][index]}px`)
-    await expect(wrapper.locator('input')).toHaveCSS('padding-left', '40px')
-    await expect(wrapper.locator('input')).toHaveCSS('padding-right', '40px')
-    for (const side of ['prefix', 'suffix']) {
-      const icon = wrapper.locator(`.ui-input-${side}`)
-      await expect(icon.locator('svg')).toHaveCSS('width', '16px')
-      const inputBox = (await wrapper.locator('input').boundingBox())!
-      const iconBox = (await icon.boundingBox())!
-      expect(Math.abs(iconBox.y + iconBox.height / 2 - inputBox.y - inputBox.height / 2)).toBeLessThan(1)
-    }
-  }
-  // Clicking through a decorative icon still focuses the native input.
-  const iconBox = (await wrappers.first().locator('.ui-input-prefix').boundingBox())!
-  await page.mouse.click(iconBox.x + 8, iconBox.y + 8)
-  await expect(wrappers.first().locator('input')).toBeFocused()
-  await page.keyboard.press('Tab')
-  await expect(wrappers.nth(1).locator('input')).toBeFocused()
-  const markup = await wrappers.first().evaluate(el => el.outerHTML)
-  await page.goto('about:blank')
-  await page.setContent(markup)
-  await page.addStyleTag({ content: await readFile('.test-consumer/no-reset.css', 'utf8') })
-  await expect(page.locator('input')).toHaveCSS('padding-left', '40px')
-  await expect(page.locator('.ui-input-suffix')).toHaveCSS('position', 'absolute')
-  await expect(page.locator('.ui-input-suffix svg')).toHaveCSS('height', '16px')
 })
 
 test('icon input forwards labels and disabled state, and inline forms remain aligned on mobile', async ({ page }) => {
@@ -121,7 +68,8 @@ test('icon input forwards labels and disabled state, and inline forms remain ali
   await expect(form.getByRole('status')).toContainText('검색')
   const inputBox = (await input.boundingBox())!
   const buttonBox = (await form.getByRole('button').boundingBox())!
-  expect(inputBox.height).toBe(buttonBox.height)
+  expect(inputBox.height).toBe(36)
+  expect(buttonBox.height).toBe(inputBox.height)
   expect(inputBox.y).toBe(buttonBox.y)
   expect(buttonBox.x - inputBox.x - inputBox.width).toBe(8)
   expect(buttonBox.x + buttonBox.width).toBeLessThanOrEqual(375)

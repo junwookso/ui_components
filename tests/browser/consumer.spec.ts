@@ -9,7 +9,7 @@ test('consumer builds package classes, service grid utilities and theme in one s
   await expect(columns.first()).toHaveCSS('grid-column', 'span 6 / span 6')
   await expect(page.getByRole('button', { name: '저장', exact: true })).toHaveCSS('background-color', 'rgb(3, 105, 161)')
   await expect(page.getByRole('button', { name: '미리보기' })).toHaveCSS('height', '32px')
-  await expect(page.getByRole('textbox')).toHaveCSS('height', '40px')
+  await expect(page.getByRole('textbox', { name: '이름', exact: true })).toHaveCSS('height', '36px')
   await expect(page.getByRole('heading', { level: 1 })).toHaveCSS('font-size', '24px')
   await expect(page.locator('body')).toHaveCSS('margin', '0px')
   await page.setViewportSize({ width: 375, height: 800 })

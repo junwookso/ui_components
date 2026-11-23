@@ -1,60 +1,20 @@
-# UI 컴포넌트 개발 지침
+# UI 패키지 유지보수 지침
 
-## 목적과 방향
+사내 업무 서비스에서 공유하는 Vue UI 패키지다. 명확한 라벨, 키보드 접근성, 상태 피드백과 일관된 배치를 우선한다. 스타일 작업 전 [스타일 가이드](./style-guide.md)를 읽는다. 기본 구현과 예제는 Storybook에서 확인한다.
 
-이 저장소는 Vue UI 컴포넌트를 만들고 Storybook에서 스타일을 다듬는 작업 공간이다.
-최종적으로 다른 모노레포에 이식하지만, 현재는 이식 인프라나 배포 자동화보다 컴포넌트 품질과 디자인 일관성에 집중한다.
+## 구현과 배포
 
-## 디자인 대상과 UX 우선순위
+- Vue 3 Composition API, `<script setup lang="ts">`, TypeScript strict, pnpm을 사용한다. 의존성 버전과 lockfile을 함께 관리한다.
+- 컴포넌트와 공개 export에 `UI` 접두사를 쓴다. 구현은 `src/components`, 공통 스타일은 `src/styles`, 공개 API는 `src/index.ts`에 둔다.
+- Vite library mode로 ESM·타입 선언·Tailwind 입력 CSS를 제공한다. Vue와 Tailwind는 peer dependency다. Storybook·테스트·개발 예제는 배포물에서 제외한다.
+- 서비스는 화면 배치·Tailwind 빌드·`--ui-*` 테마를 관리한다. 패키지는 컴포넌트 스타일과 상태를 관리한다. Tailwind 클래스는 완전한 문자열로 쓰고 개발 소스와 배포 CSS의 `@source` 경로를 유지한다.
+- 시맨틱 HTML, 접근 가능한 이름, 키보드 포커스, disabled 동작을 확인한다. 아이콘은 슬롯으로 제공한다. 네이티브 HTML로 구현하기 어려운 상호작용에 primitive가 필요하면 이유를 기록한다. shadcn-vue 파생 코드의 고지는 [라이선스 문서](./THIRD_PARTY_NOTICES.md)에 보존한다.
+- 공통 디자인 결정은 컴포넌트, 토큰, Storybook, 스타일 가이드에 반영한다. 공개 API·토큰·명령이 바뀌면 [README](./README.md)도 갱신한다. 현재 사용 가능한 동작을 문서화한다.
 
-- 디자인 대상은 직원들이 업무에 사용하는 사내 서비스이다. 시각적인 임팩트보다 기능적인 UX를 우선한다.
-- 사용자가 정보를 빠르게 읽고, 필요한 기능을 찾고, 반복 업무를 정확하고 효율적으로 수행할 수 있도록 설계한다.
-- 명확한 라벨, 일관된 배치와 동작, 읽기 쉬운 정보 밀도, 키보드 접근성, 상태 피드백과 오류 예방을 중요하게 다룬다.
-- 색상·아이콘·여백·애니메이션은 정보 구분과 조작 이해를 돕는 용도로 사용한다. 업무 흐름을 방해하는 장식이나 과도한 효과는 피한다.
-- 카드 액션은 우측 정렬을 기본으로 한다. 주요 동작 하나만 filled(`default`), 보조 동작은 `outline`, 취소는 `ghost`를 사용하고 취소 → 보조 → 주요 동작 순서로 배치한다.
-- 디자인 선택 시 실제 업무 시나리오에서의 사용성과 일관성을 판단 기준으로 삼는다.
+## 검증
 
-## 디자인 가이드와 테마 참고 기준
+로컬 개발에는 Node.js 22.12 이상과 pnpm 10.32.1을 사용한다. `pnpm install` 후 `pnpm storybook`을 실행한다.
 
-- 상세 기준과 출처는 [style-guide.md](./style-guide.md)의 「레퍼런스와 적용 원칙」, 「공통 UX 지침」, 「테마 설계 지침」을 따른다.
-- 업무 화면과 데이터 처리 패턴은 Carbon, 정보 밀도는 SAP Fiori, 시각적 색상 계층은 Fluent 2, 간격과 폼 피드백은 Atlassian을 참고한다. CSS 변수 기반 테마 구현은 shadcn-vue를 참고한다.
-- 외부 시스템은 참고 자료이다. 현재 프로젝트의 결정과 사용자 지시를 우선하며, 서로 다른 시스템의 크기·배치·토큰을 그대로 혼합하지 않는다. 참고를 위해 런타임 의존성을 추가하지 않는다.
-- 화면은 중립색 중심으로 구성하고 primary는 주요 액션과 선택 강조에 사용한다. 성공·주의·오류 같은 의미색은 서비스 브랜드색과 분리한다.
-- 서비스는 컬러 테마를 지정하고, 패키지는 크기·간격·타이포그래피·모서리·상태 표현을 관리한다. 새 색상은 역할 기반 토큰으로 정의하며 컴포넌트별 하드코딩을 피한다.
-- 디자인 지침과 구현 상태를 구분한다. 미구현 토큰·테마·패턴은 사용 가능한 API처럼 안내하지 않으며, 적용 시 컴포넌트·토큰·Storybook·문서를 함께 갱신한다.
-
-## 기술과 구조
-
-- Vue 3 Composition API, `<script setup lang="ts">`, TypeScript strict 모드를 사용한다.
-- Vite library mode로 ESM과 타입 선언을 제공하고, Tailwind 입력 CSS를 함께 배포한다. Vue는 peer dependency이다.
-- pnpm을 사용하고 의존성 버전과 lockfile을 함께 관리한다.
-- Tailwind CSS와 shadcn-vue 소스를 바탕으로 필요한 컴포넌트만 추가한다. upstream 코드는 이 프로젝트의 디자인 규칙에 맞게 관리한다.
-- 컴포넌트 파일과 공개 export 이름은 `UI` 접두사를 사용한다. 예: `UIButton.vue`, `UIButton`.
-- 구현은 `src/components`, 스타일은 `src/styles`, 공개 API는 `src/index.ts`에 둔다.
-- Storybook을 개발과 디자인 검토의 기본 화면으로 사용한다.
-
-## 스타일 작업
-
-- 작업 전에 [style-guide.md](./style-guide.md)를 읽는다.
-- UI 패키지는 디자인 규칙과 컴포넌트 스타일을 소유하고, 서비스는 화면 레이아웃과 최종 Tailwind CSS 빌드를 담당한다. Tailwind CSS는 필수 peer dependency이며 로컬 개발용 dev dependency에도 유지한다.
-- 서비스의 테마 계약은 `--ui-*` 컬러 변수이다. 컴포넌트 크기·타이포그래피·상태 표현은 패키지가 관리하고 화면 Grid·Flex·간격·반응형 배치는 서비스가 Tailwind로 작성한다. 별도 grid 클래스 체계를 만들지 않는다.
-- Tailwind import와 Preflight는 서비스가 한 번 적용한다. 패키지는 별도 reset을 배포하지 않는다. Preflight를 제외한 서비스 구성에서도 컴포넌트 스타일을 검증한다.
-- 새 공통 스타일이나 디자인 결정을 도입하면 구현과 함께 `style-guide.md`를 갱신한다. 새 디자인 지침의 구현 여부를 명시하고, 미구현 항목을 이미 제공하는 기능처럼 문서화하지 않는다.
-- 새 컴포넌트의 Tailwind 클래스는 완전한 문자열로 작성한다. 개발 source와 배포 CSS의 @source 경로를 유지하고 소비 앱 빌드에서 클래스 생성을 검증한다. 배포 CSS는 Tailwind 자체를 import하지 않으며 서비스의 Tailwind 빌드에 통합된다.
-
-## 의존성과 접근성
-
-- 네이티브 HTML로 충분한 기능에는 불필요한 런타임 라이브러리를 추가하지 않는다.
-- 복잡한 상호작용의 접근성을 위해 필요한 primitive 도입은 허용한다. 의존성 추가 이유를 설명한다.
-- 아이콘은 슬롯으로 받고 아이콘 라이브러리를 강제하지 않는다.
-- 시맨틱 HTML, 키보드 사용, 포커스 표시, disabled 동작, 접근 가능한 이름을 보장한다.
-- 라이브러리로 배포하는 파일에 Storybook, 테스트, 개발 전용 코드를 포함하지 않는다.
-- shadcn-vue에서 파생된 코드의 라이선스 고지를 보존한다.
-
-## 확인
-
-- 개발: `pnpm storybook`
-- 필수: `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm build:consumer`, `pnpm build-storybook`
-- 브라우저 동작 검증: `pnpm test:browser` (처음에는 `pnpm exec playwright install chromium` 필요)
-- 새 API 또는 동작에는 의미 있는 테스트를 추가한다. 스타일 조정은 관련 Storybook 상태와 브라우저에서 확인한다.
-- props, 테마 토큰, 실행 명령이 바뀌면 README와 관련 가이드를 함께 갱신한다.
+- 필수 검증은 `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm build:consumer`, `pnpm build-storybook`이다. 소비 앱은 패키지 빌드 후 실행한다.
+- 브라우저는 `pnpm test:browser`로 검증한다. 처음에는 `pnpm exec playwright install chromium`이 필요하다. 이 명령은 라이브러리·소비 앱·Storybook을 빌드하고 로컬 미리보기에서 테스트한다.
+- 공개 API의 상태·이벤트·경계값은 단위 테스트에서 확인한다. 실제 키보드·포커스·네이티브 폼·서버 연동·배포 CSS는 브라우저 테스트로 검증한다. Preflight를 제외한 구성도 포함한다. 같은 동작을 이미 검증한다면 기존 테스트를 활용하고 시각 예제는 Storybook에서 검토한다.

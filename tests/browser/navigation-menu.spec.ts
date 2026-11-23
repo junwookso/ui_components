@@ -1,0 +1,21 @@
+import { expect, test } from '@playwright/test'
+const story = (name: string) => `/iframe.html?id=layout-uinavigationmenu--${name}&viewMode=story`
+test('three levels expose route state, disclosure and keyboard navigation', async ({ page }) => {
+  await page.goto(story('playground') + '&globals=theme:ocean')
+  const nav = page.getByRole('navigation', { name: '업무 메뉴' })
+  await expect(nav.getByRole('link', { name: '프로젝트 목록' })).toHaveAttribute('aria-current', 'page')
+  const work = nav.getByRole('button', { name: '업무 관리' })
+  await work.focus()
+  await page.keyboard.press('Space')
+  await expect(nav.getByRole('link', { name: '프로젝트 목록' })).toBeHidden()
+  await page.keyboard.press('Enter')
+  await expect(nav.getByRole('link', { name: '프로젝트 목록' })).toBeVisible()
+  await page.keyboard.press('Tab')
+  await expect(nav.getByRole('button', { name: '프로젝트', exact: false }).first()).toBeFocused()
+  const approval = nav.getByRole('link', { name: '승인 요청' })
+  await approval.focus()
+  await expect(approval).toHaveCSS('outline-style', 'solid')
+  await page.keyboard.press('Enter')
+  await expect(approval).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByRole('status')).toHaveText('현재 route: approvals')
+})

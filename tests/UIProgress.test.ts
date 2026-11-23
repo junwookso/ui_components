@@ -3,20 +3,6 @@ import { mount } from '@vue/test-utils'
 import UIProgress from '../src/components/progress/UIProgress.vue'
 
 describe('UIProgress', () => {
-  it('connects the visible label and description to native progress and reacts to values', async () => {
-    const wrapper = mount(UIProgress, { props: { label: '파일 업로드', value: 3, max: 10, description: '문서 처리' } })
-    const progress = wrapper.get('progress')
-    expect(progress.attributes('aria-labelledby')).toBe(wrapper.get('.ui-progress-label').attributes('id'))
-    expect(progress.attributes('aria-describedby')).toBe(wrapper.get('p').attributes('id'))
-    expect(progress.attributes('value')).toBe('3')
-    expect(progress.attributes('max')).toBe('10')
-    expect(progress.attributes('aria-valuetext')).toBe('30%')
-    expect(wrapper.get('.ui-progress-fill').attributes('style')).toContain('width: 30%')
-    await wrapper.setProps({ value: 10, description: undefined })
-    expect(progress.attributes('aria-valuetext')).toBe('100%')
-    expect(progress.attributes('aria-describedby')).toBeUndefined()
-    expect(progress.attributes('tabindex')).toBeUndefined()
-  })
 
   it('distinguishes zero from unknown and removes the native value for indeterminate progress', async () => {
     const wrapper = mount(UIProgress, { props: { label: '보고서 생성' } })

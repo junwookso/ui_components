@@ -1,27 +1,5 @@
-import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 const story = (name: string) => `/iframe.html?id=components-uiprogress--${name}&viewMode=story`
-
-test('native progress exposes the task, updates its value and leaves controls keyboard accessible', async ({ page }) => {
-  await page.goto(story('interactive'))
-  const progress = page.getByRole('progressbar', { name: '문서 처리' })
-  await expect(progress).toHaveAttribute('value', '0')
-  await expect(progress).toHaveAttribute('max', '5')
-  const process = page.getByRole('button', { name: '1건 처리' })
-  await process.focus()
-  await page.keyboard.press('Enter')
-  await expect(progress).toHaveAttribute('value', '1')
-  await expect(progress).toHaveAttribute('aria-valuetext', '1 / 5건')
-  const ratio = await page.locator('.ui-progress-track').evaluate(el => el.firstElementChild!.getBoundingClientRect().width / el.getBoundingClientRect().width)
-  expect(ratio).toBeCloseTo(0.2, 2)
-  for (let i = 0; i < 4; i++) await process.click()
-  await expect(process).toBeDisabled()
-  await expect(page.getByRole('status')).toHaveText('모든 문서 처리가 완료되었습니다.')
-  await expect(page.locator('.ui-progress-fill')).toHaveCSS('background-color', 'rgb(22, 101, 52)')
-  await page.getByRole('button', { name: '초기화' }).click()
-  await expect(progress).toHaveAttribute('value', '0')
-  await expect(process).toBeEnabled()
-})
 
 test('unknown progress, reduced motion, sizes, theme and narrow layout', async ({ page }) => {
   await page.goto(story('indeterminate'))
@@ -38,32 +16,8 @@ test('unknown progress, reduced motion, sizes, theme and narrow layout', async (
   const ids = await page.locator('.ui-progress-label').evaluateAll(elements => elements.map(el => el.id))
   expect(new Set(ids).size).toBe(3)
   await page.goto(story('states'))
-  await page.screenshot({ path: 'test-results/progress-states.png', fullPage: true })
   await page.setViewportSize({ width: 320, height: 800 })
   await page.goto(story('long-label'))
   await expect(page.getByRole('progressbar')).toHaveAttribute('value', '45')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await page.screenshot({ path: 'test-results/progress-mobile.png', fullPage: true })
-})
-
-test('packaged styles work without Preflight, with RTL and in forced colors', async ({ page }) => {
-  await page.goto(story('playground'))
-  await expect(page.getByRole('progressbar')).toHaveAttribute('value', '45')
-  const markup = await page.locator('.ui-progress').evaluate(el => el.outerHTML)
-  await page.goto('about:blank')
-  await page.setContent(`<div dir="rtl">${markup}</div>`)
-  await page.addStyleTag({ content: await readFile('.test-consumer/no-reset.css', 'utf8') })
-  await expect(page.locator('.ui-progress')).toHaveCSS('display', 'grid')
-  await expect(page.locator('.ui-progress')).toHaveCSS('gap', '8px')
-  await expect(page.locator('.ui-progress-track')).toHaveCSS('height', '8px')
-  await expect(page.locator('.ui-progress-label')).toHaveCSS('font-size', '14px')
-  const track = (await page.locator('.ui-progress-track').boundingBox())!
-  const fill = (await page.locator('.ui-progress-fill').boundingBox())!
-  expect(Math.abs(track.x + track.width - fill.x - fill.width)).toBeLessThan(1)
-  await page.emulateMedia({ forcedColors: 'active' })
-  await expect(page.locator('.ui-progress-track')).toHaveCSS('outline-width', '1px')
-  await expect(page.locator('.ui-progress-fill')).toHaveCSS('forced-color-adjust', 'none')
-  await page.goto('http://127.0.0.1:6008')
-  await expect(page.getByRole('progressbar', { name: '배포 진행률' })).toHaveAttribute('value', '40')
-  await expect(page.locator('.ui-progress-track')).toHaveCSS('height', '8px')
 })

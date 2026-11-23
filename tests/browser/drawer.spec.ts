@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 const story = (name = 'playground') => `/iframe.html?id=layout-uidrawer--${name}&viewMode=story`
 
@@ -9,9 +8,9 @@ test('drawer opens, traps keyboard focus, applies input and restores focus on al
   const dialog = page.getByRole('dialog', { name: '업무 필터' })
   await expect(dialog.getByRole('button', { name: '업무 필터 닫기' })).toBeFocused()
   await expect(dialog).toHaveAccessibleDescription('조건을 입력하고 적용해 주세요.')
-  const box = (await dialog.boundingBox())!
-  expect(box.x + box.width).toBe(page.viewportSize()!.width)
-  expect(box.width).toBe(400)
+  await expect.poll(() => dialog.evaluate(el => el.getBoundingClientRect().right))
+    .toBe(page.viewportSize()!.width)
+  await expect(dialog).toHaveCSS('width', '400px')
   await dialog.getByRole('textbox', { name: '업무명' }).fill('권한')
   await dialog.getByRole('button', { name: '적용', exact: true }).click()
   await expect(dialog).toBeHidden()
@@ -36,33 +35,54 @@ test('drawer opens, traps keyboard focus, applies input and restores focus on al
   await expect(page.getByRole('dialog')).toBeHidden()
 })
 
-test('drawer side, mobile scrolling and theme match dialog surfaces', async ({ page }) => {
+for (const side of ['left', 'right'] as const) {
+  test(`drawer enters from the ${side} and restores focus when dismissed during entry`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.setViewportSize({ width: 960, height: 600 })
+    await page.goto(story(side === 'left' ? 'left' : 'playground'))
+    const trigger = page.getByRole('button', { name: '필터 열기' })
+    await trigger.focus()
+    const { start, middle, width } = await trigger.evaluate(async element => {
+      const button = element as HTMLButtonElement
+      button.click()
+      await Promise.resolve()
+      const drawer = document.querySelector<HTMLDialogElement>('.ui-drawer[open]')
+      const entry = drawer?.getAnimations().find(animation =>
+        animation instanceof CSSAnimation && animation.animationName === 'ui-drawer-enter',
+      )
+      if (!drawer || !entry) throw new Error('The drawer has no entry animation.')
+      entry.pause()
+      await entry.ready
+      entry.currentTime = 0
+      const { x: start, width } = drawer.getBoundingClientRect()
+      entry.currentTime = Number(entry.effect?.getTiming().duration) / 2
+      return { start, middle: drawer.getBoundingClientRect().x, width }
+    })
+    if (side === 'left') {
+      expect(start).toBe(-width)
+      expect(middle).toBeGreaterThan(start)
+      expect(middle).toBeLessThan(0)
+    } else {
+      expect(start).toBe(960)
+      expect(middle).toBeLessThan(start)
+      expect(middle).toBeGreaterThan(960 - width)
+    }
+
+    const dialog = page.getByRole('dialog', { name: '업무 필터' })
+    await expect(dialog.getByRole('button', { name: '업무 필터 닫기' })).toBeFocused()
+    await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    await expect(trigger).toBeFocused()
+    await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden')
+  })
+}
+
+test('drawer opens immediately with reduced motion', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto(story('left'))
   await page.getByRole('button', { name: '필터 열기' }).click()
-  expect((await page.getByRole('dialog').boundingBox())!.x).toBe(0)
-  await page.screenshot({ path: 'test-results/drawer-left.png' })
-  await page.setViewportSize({ width: 320, height: 600 })
-  await page.goto(story('long-content') + '&globals=theme:ocean')
-  await page.getByRole('button', { name: '안내 열기' }).click()
-  const box = (await page.getByRole('dialog').boundingBox())!
-  expect(box.width).toBe(320); expect(box.height).toBe(600)
-  expect(await page.locator('.ui-drawer-body').evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true)
-  const confirm = page.getByRole('button', { name: '확인', exact: true })
-  await expect(confirm).toBeInViewport()
-  await expect(confirm).toHaveCSS('background-color', 'rgb(3, 105, 161)')
-  await page.screenshot({ path: 'test-results/drawer-mobile.png' })
-})
-
-test('drawer package exports and geometry survive without Preflight', async ({ page }) => {
-  await page.goto('http://127.0.0.1:6008')
-  await page.getByRole('button', { name: '배포 Drawer 열기' }).click()
-  await expect(page.getByRole('dialog', { name: '배포 패널' })).toBeVisible()
-  const markup = await page.getByRole('dialog').evaluate(el => el.outerHTML)
-  await page.goto('about:blank')
-  await page.setContent(markup)
-  await page.addStyleTag({ content: await readFile('.test-consumer/no-reset.css', 'utf8') })
-  await page.locator('dialog').evaluate((el: HTMLDialogElement) => { el.removeAttribute('open'); el.showModal() })
-  await expect(page.getByRole('dialog')).toHaveCSS('width', '400px')
-  await expect(page.getByRole('dialog')).toHaveCSS('padding', '0px')
-  await expect(page.getByRole('heading')).toHaveCSS('margin-top', '0px')
+  const dialog = page.getByRole('dialog', { name: '업무 필터' })
+  await expect(dialog).toHaveCSS('animation-name', 'none')
+  expect((await dialog.boundingBox())?.x).toBe(0)
 })

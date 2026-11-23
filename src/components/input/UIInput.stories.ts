@@ -28,7 +28,7 @@ export const Sizes: Story = {
     components: { UIInput },
     template: `<div class="input-demo story-grid">
       <div><label class="field-label ui-label" for="input-small">Small</label><UIInput id="input-small" size="sm" placeholder="32px" /></div>
-      <div><label class="field-label ui-label" for="input-default">Default</label><UIInput id="input-default" placeholder="40px" /></div>
+      <div><label class="field-label ui-label" for="input-default">Default</label><UIInput id="input-default" placeholder="36px" /></div>
       <div><label class="field-label ui-label" for="input-large">Large</label><UIInput id="input-large" size="lg" placeholder="48px" /></div>
     </div>`,
   }),

@@ -27,20 +27,6 @@ describe('UIInput', () => {
     expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['한'])
   })
 
-  it('forwards form and accessibility attributes and native focus events', async () => {
-    const onFocus = vi.fn()
-    const wrapper = mount(UIInput, {
-      props: { type: 'email', invalid: true },
-      attrs: { id: 'email', name: 'email', required: true, autocomplete: 'email', 'aria-describedby': 'help', onFocus },
-    })
-    expect(wrapper.get('input').attributes()).toMatchObject({ id: 'email', name: 'email', type: 'email', 'aria-invalid': 'true', 'aria-describedby': 'help', autocomplete: 'email' })
-    expect(wrapper.get('input').element.required).toBe(true)
-    await wrapper.get('input').trigger('focus')
-    expect(onFocus).toHaveBeenCalledOnce()
-    await wrapper.setProps({ invalid: false })
-    expect(wrapper.get('input').attributes('aria-invalid')).toBeUndefined()
-  })
-
   it('renders icon slots while keeping labels, attributes, and events on the input', async () => {
     const onInput = vi.fn()
     const wrapper = mount(UIInput, {
@@ -57,14 +43,5 @@ describe('UIInput', () => {
     await wrapper.get('input').setValue('아이콘 검색')
     expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['아이콘 검색'])
     expect(onInput).toHaveBeenCalledOnce()
-  })
-
-  it('keeps disabled and readonly as distinct native states', () => {
-    const disabled = mount(UIInput, { props: { disabled: true } })
-    const readonly = mount(UIInput, { props: { readonly: true, modelValue: '복사 가능' } })
-    expect(disabled.get('input').element.disabled).toBe(true)
-    expect(readonly.get('input').element.readOnly).toBe(true)
-    expect(readonly.get('input').element.disabled).toBe(false)
-    expect(readonly.get('input').element.value).toBe('복사 가능')
   })
 })

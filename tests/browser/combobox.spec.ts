@@ -1,0 +1,77 @@
+import { expect, test } from '@playwright/test'
+
+const story = (name: string) => `/iframe.html?id=components-uicombobox--${name}&viewMode=story`
+
+test('keyboard navigation skips disabled options and Escape restores the selected label', async ({ page }) => {
+  await page.goto(story('playground'))
+  const input = page.getByRole('combobox', { name: '담당자' })
+  await expect(input).toHaveAccessibleDescription('이름, 소속 또는 사번으로 검색하세요.')
+  await input.press('ArrowDown')
+  await expect(input).toHaveAttribute('aria-expanded', 'true')
+  const first = page.getByRole('option', { name: '김민수 · 운영지원팀' })
+  const disabled = page.getByRole('option', { name: '이서연 · 플랫폼팀' })
+  const next = page.getByRole('option', { name: '박지훈 · 플랫폼팀' })
+  await expect(disabled).toBeDisabled()
+  await expect(input).toHaveAttribute('aria-activedescendant', (await first.getAttribute('id'))!)
+  await input.press('ArrowDown')
+  await expect(input).toHaveAttribute('aria-activedescendant', (await next.getAttribute('id'))!)
+  await input.press('Enter')
+  await expect(input).toHaveValue('박지훈 · 플랫폼팀')
+  await expect(input).toHaveAttribute('aria-expanded', 'false')
+  await expect(input).toBeFocused()
+
+  await input.fill(' emp-104 ')
+  await expect(page.getByRole('option')).toHaveCount(1)
+  await expect(page.getByRole('option')).toHaveText('최유진 · 재무팀')
+  await input.press('Home')
+  await expect(input).toHaveJSProperty('selectionStart', 0)
+  await input.press('End')
+  await expect(input).toHaveJSProperty('selectionStart', 9)
+  await input.press('Escape')
+  await expect(input).toHaveValue('박지훈 · 플랫폼팀')
+  await expect(input).toHaveAttribute('aria-expanded', 'false')
+
+  await input.fill('없는 직원')
+  await expect(page.getByRole('status')).toHaveText('검색 결과가 없습니다.')
+  await input.press('Tab')
+  const clear = page.getByRole('button', { name: '지우기' })
+  await expect(clear).toBeFocused()
+  await expect(input).toHaveAttribute('aria-expanded', 'false')
+  await expect(input).toHaveValue('박지훈 · 플랫폼팀')
+  await page.keyboard.press('Enter')
+  await expect(input).toHaveValue('')
+  await expect(input).toBeFocused()
+})
+
+test('required form submission accepts a selection and rejects uncommitted search text', async ({ page }) => {
+  await page.goto(story('form'))
+  const input = page.getByRole('combobox', { name: '업무 담당자' })
+  const apply = page.getByRole('button', { name: '적용' })
+  const result = page.getByTestId('submitted')
+  await apply.click()
+  await expect(input).toBeFocused()
+  await input.fill('없는 직원')
+  await input.press('Enter')
+  await expect(result).toBeEmpty()
+  expect(await input.evaluate(el => (el as HTMLInputElement).validity.customError)).toBe(true)
+  await input.fill('박지훈')
+  await page.getByRole('option', { name: '박지훈 · 플랫폼팀' }).click()
+  await apply.click()
+  await expect(result).toHaveText('103')
+})
+
+test('search waits for Korean composition to finish', async ({ page }) => {
+  await page.goto(story('playground'))
+  const input = page.getByRole('combobox', { name: '담당자' })
+  await input.focus()
+  await input.evaluate(element => {
+    const input = element as HTMLInputElement
+    input.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }))
+    input.value = '박'
+    input.dispatchEvent(new InputEvent('input', { bubbles: true, isComposing: true }))
+  })
+  await expect(input).toHaveAttribute('aria-expanded', 'false')
+  await input.dispatchEvent('compositionend', { data: '박' })
+  await expect(input).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('option')).toHaveText('박지훈 · 플랫폼팀')
+})

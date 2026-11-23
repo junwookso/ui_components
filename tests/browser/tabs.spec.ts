@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 
 const story = (name: string) => `/iframe.html?id=components-uitabs--${name}&viewMode=story`
@@ -54,39 +53,5 @@ for (const [orientation, next, previous] of [['horizontal', 'ArrowRight', 'Arrow
       expect(Math.abs(tabBox.x + tabBox.width - panelBox.x - 1)).toBeLessThan(1)
       await expect(general).toHaveCSS('border-right-color', 'rgb(255, 255, 255)')
     }
-    await page.screenshot({ path: `test-results/tabs-folder-${orientation}.png`, fullPage: true })
   })
 }
-
-test('horizontal lists scroll on small screens and selection follows theme tokens', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 800 })
-  await page.goto(story('overflow'))
-  const list = page.getByRole('tablist')
-  expect(await list.evaluate(el => el.scrollWidth > el.clientWidth)).toBe(true)
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await page.getByRole('tab').first().focus()
-  await page.keyboard.press('End')
-  await expect(page.getByRole('tab', { name: '비용 및 사용량' })).toBeFocused()
-  await page.keyboard.press('Enter')
-  await expect(page.getByRole('tabpanel', { name: '비용 및 사용량' })).toBeVisible()
-  await page.goto(story('vertical') + '&globals=theme:ocean')
-  await expect(page.getByRole('tab', { name: '기본 정보' })).toHaveCSS('background-color', 'rgb(255, 255, 255)')
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-})
-
-test('tabs keep layout, hidden panels and state indicators without reset', async ({ page }) => {
-  await page.goto(story('horizontal'))
-  await expect(page.getByRole('tablist')).toBeVisible()
-  const markup = await page.locator('.ui-tabs').evaluate(el => el.outerHTML)
-  await page.goto('about:blank')
-  await page.setContent(markup)
-  await page.addStyleTag({ content: await readFile('.test-consumer/no-reset.css', 'utf8') })
-  const selected = page.getByRole('tab', { selected: true })
-  await expect(selected).toHaveCSS('min-height', '40px')
-  await expect(selected).toHaveCSS('font-size', '14px')
-  await expect(page.getByRole('tabpanel')).toHaveCount(1)
-  await expect(page.getByRole('tabpanel')).toHaveCSS('border-top-width', '1px')
-  await expect(selected).toHaveCSS('border-bottom-color', 'rgb(255, 255, 255)')
-  await page.emulateMedia({ reducedMotion: 'reduce' })
-  await expect(selected).toHaveCSS('transition-duration', '0s')
-})

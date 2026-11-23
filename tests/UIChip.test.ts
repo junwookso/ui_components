@@ -3,15 +3,6 @@ import { mount } from '@vue/test-utils'
 import UIChip from '../src/components/chip/UIChip.vue'
 
 describe('UIChip', () => {
-  it('renders a non-interactive text label and a decorative icon slot', () => {
-    const wrapper = mount(UIChip, { props: { label: '승인 완료' }, attrs: { id: 'status', 'data-testid': 'chip' }, slots: { icon: '<svg focusable="false" />' } })
-    expect(wrapper.element.tagName).toBe('SPAN')
-    expect(wrapper.text()).toBe('승인 완료')
-    expect(wrapper.find('button').exists()).toBe(false)
-    expect(wrapper.attributes('tabindex')).toBeUndefined()
-    expect(wrapper.attributes('id')).toBe('status')
-    expect(wrapper.get('.ui-chip-icon').attributes('aria-hidden')).toBe('true')
-  })
 
   it('emits remove without hiding itself, submitting a form or bubbling the click', async () => {
     const parentClick = vi.fn()

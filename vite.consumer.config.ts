@@ -9,7 +9,7 @@ export default defineConfig({
     outDir: '../../.test-consumer',
     emptyOutDir: true,
     rollupOptions: {
-      input: ['tests/consumer/index.html', 'tests/consumer/no-reset.css', 'tests/consumer/reset.css'],
+      input: ['tests/consumer/index.html', 'tests/consumer/no-reset.css'],
       output: { assetFileNames: '[name][extname]' },
     },
   },

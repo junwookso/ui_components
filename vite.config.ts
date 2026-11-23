@@ -7,6 +7,6 @@ export default defineConfig({
   build: {
     cssCodeSplit: true,
     lib: { entry: 'src/index.ts', formats: ['es'], fileName: 'index' },
-    rollupOptions: { external: ['vue'] },
+    rollupOptions: { external: ['vue', 'reka-ui'] },
   },
 })

@@ -19,6 +19,45 @@ const names = (wrapper: ReturnType<typeof create>) => wrapper.findAll('tbody tr'
 const button = (wrapper: ReturnType<typeof create>, label: string) => wrapper.findAll('button').find(item => item.text() === label)!
 
 describe('UIDataTable', () => {
+  it('uses server totals and preserves the order and content of the supplied page', async () => {
+    const wrapper = create({ mode: 'server', totalRows: 8, data: [data[0]!, data[1]!], pagination: { pageIndex: 2, pageSize: 2 }, searchable: true })
+    expect(names(wrapper)).toEqual(['Beta', 'Alpha'])
+    expect(wrapper.get('[role="status"]').text()).toContain('총 8건 중 5–6건')
+    await button(wrapper, '다음').trigger('click')
+    expect(wrapper.emitted('update:pagination')?.at(-1)).toEqual([{ pageIndex: 3, pageSize: 2 }])
+    await wrapper.get('input[type="search"]').setValue('remote-only')
+    expect(wrapper.emitted('update:globalFilter')?.at(-1)).toEqual(['remote-only'])
+    expect(wrapper.emitted('update:pagination')?.at(-1)).toEqual([{ pageIndex: 0, pageSize: 2 }])
+    await wrapper.get('button[aria-label="이름: 오름차순 정렬"]').trigger('click')
+    expect(wrapper.emitted('update:sorting')?.at(-1)).toEqual([[{ id: 'name', desc: false }]])
+    expect(names(wrapper)).toEqual(['Beta', 'Alpha'])
+  })
+
+  it('retains the requested server page during loading and error, then clamps on a completed response', async () => {
+    const wrapper = create({ mode: 'server', totalRows: 0, data: [], loading: true, pagination: { pageIndex: 3, pageSize: 2 }, searchable: true })
+    expect(wrapper.emitted('update:pagination')).toBeUndefined()
+    expect(wrapper.get<HTMLInputElement>('input[type="search"]').element.disabled).toBe(false)
+    await wrapper.setProps({ loading: false, error: '실패' })
+    expect(wrapper.emitted('update:pagination')).toBeUndefined()
+    await button(wrapper, '다시 시도').trigger('click')
+    expect(wrapper.emitted('retry')).toHaveLength(1)
+    await wrapper.setProps({ error: '', totalRows: 3 })
+    expect(wrapper.emitted('update:pagination')?.at(-1)).toEqual([{ pageIndex: 1, pageSize: 2 }])
+  })
+
+  it('keeps selections from other server pages without counting them in the current response', async () => {
+    const wrapper = create({
+      mode: 'server', totalRows: 8, data: [data[2]!, data[3]!], selectable: true,
+      rowSelection: { b: true }, canSelectRow: (row: Person) => !row.locked,
+    })
+    await wrapper.get('thead input').setValue(true)
+    expect(wrapper.emitted('update:rowSelection')?.at(-1)).toEqual([{ b: true, d: true }])
+    expect(wrapper.get('[role="status"]').text()).toContain('현재 응답에서 1건 선택')
+    await wrapper.setProps({ data: [data[0]!] })
+    expect(wrapper.get<HTMLInputElement>('input[aria-label="Beta 선택"]').element.checked).toBe(true)
+    expect(wrapper.get('[role="status"]').text()).toContain('현재 응답에서 1건 선택')
+  })
+
   it('renders native table semantics and sorts text/numbers without changing input data', async () => {
     const wrapper = create()
     expect(wrapper.get('caption').text()).toBe('직원')

@@ -25,6 +25,9 @@ export interface UIDataTableProps<TData extends object> {
   canSelectRow?: (row: TData) => boolean
   searchable?: boolean
   paginated?: boolean
+  mode?: 'client' | 'server'
+  /** Count before pagination for the current server query. */
+  totalRows?: number
   sorting?: SortingState
   pagination?: PaginationState
   rowSelection?: RowSelectionState

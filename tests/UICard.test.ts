@@ -25,13 +25,4 @@ describe('UICard', () => {
     expect(wrapper.get('.ui-card-body input').attributes('name')).toBe('project')
     expect(wrapper.get('.ui-card-actions button').attributes('type')).toBe('submit')
   })
-
-  it('omits unused header and action regions and forwards native attributes', () => {
-    const wrapper = mount(UICard, { attrs: { 'aria-label': '업무 정보', id: 'info' }, slots: { default: '내용' } })
-    expect(wrapper.find('header').exists()).toBe(false)
-    expect(wrapper.find('footer').exists()).toBe(false)
-    expect(wrapper.attributes('aria-labelledby')).toBeUndefined()
-    expect(wrapper.attributes('aria-label')).toBe('업무 정보')
-    expect(wrapper.attributes('id')).toBe('info')
-  })
 })

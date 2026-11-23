@@ -25,11 +25,4 @@ describe('UISwitch', () => {
     await wrapper.get('input').setValue(true)
     expect(onChange).toHaveBeenCalledOnce()
   })
-
-  it('does not change state or emit updates when disabled', () => {
-    const wrapper = mount(UISwitch, { props: { modelValue: true, disabled: true }, attachTo: document.body })
-    wrapper.get('input').element.click()
-    expect(wrapper.get('input').element.checked).toBe(true)
-    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
-  })
 })

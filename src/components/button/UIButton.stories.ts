@@ -3,7 +3,7 @@ import { fn } from 'storybook/test'
 import UIButton from './UIButton.vue'
 
 const variants = ['default', 'secondary', 'outline', 'ghost', 'destructive', 'link'] as const
-const sizes = ['default', 'sm', 'lg', 'icon'] as const
+const sizes = ['sm', 'default', 'lg'] as const
 const meta = {
   title: 'Components/UIButton',
   component: UIButton,
@@ -36,7 +36,6 @@ export const Sizes: Story = {
     components: { UIButton },
     template: `<div class="story-row">
       <UIButton size="sm">Small</UIButton><UIButton>Default</UIButton><UIButton size="lg">Large</UIButton>
-      <UIButton size="icon" aria-label="추가"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></UIButton>
     </div>`,
   }),
 }
@@ -79,9 +78,9 @@ export const WithIcon: Story = {
   },
   render: (args) => ({
     components: { UIButton },
-    setup: () => ({ args, textSizes: ['sm', 'default', 'lg'] as const }),
+    setup: () => ({ args, sizes }),
     template: `<div class="story-grid">
-      <div v-for="size in textSizes" :key="size">
+      <div v-for="size in sizes" :key="size">
         <p class="story-label">{{ size }}</p>
         <div class="story-row">
           <UIButton :size="size" :variant="args.variant" :disabled="args.disabled" @click="args.onClick">${plusIcon}추가하기</UIButton>
@@ -98,19 +97,19 @@ export const IconButton: Story = {
   name: 'Icon Button',
   parameters: {
     controls: { include: ['disabled'] },
-    docs: { description: { story: 'size="icon"은 40×40px 버튼입니다. 텍스트가 없으므로 버튼에 aria-label을 지정하고 SVG는 aria-hidden="true"로 숨깁니다. 툴팁은 이 예제에 포함하지 않습니다.' } },
+    docs: { description: { story: '기본 버튼 크기를 사용하고 너비를 높이와 같게 지정합니다. 버튼에는 aria-label로 이름을 제공하고 SVG는 aria-hidden="true"로 숨깁니다.' } },
   },
   render: (args) => ({
     components: { UIButton },
     setup: () => ({ args }),
     template: `<div class="story-grid">
       <div class="story-row">
-        <div><p class="story-label">default · 추가</p><UIButton size="icon" aria-label="추가" :disabled="args.disabled" @click="args.onClick">${plusIcon}</UIButton></div>
-        <div><p class="story-label">outline · 검색</p><UIButton size="icon" variant="outline" aria-label="검색" :disabled="args.disabled" @click="args.onClick">${searchIcon}</UIButton></div>
-        <div><p class="story-label">ghost · 다운로드</p><UIButton size="icon" variant="ghost" aria-label="다운로드" :disabled="args.disabled" @click="args.onClick">${downloadIcon}</UIButton></div>
-        <div><p class="story-label">destructive · 삭제</p><UIButton size="icon" variant="destructive" aria-label="삭제" :disabled="args.disabled" @click="args.onClick">${trashIcon}</UIButton></div>
+        <div><p class="story-label">default · 추가</p><UIButton class="w-9 px-0" aria-label="추가" :disabled="args.disabled" @click="args.onClick">${plusIcon}</UIButton></div>
+        <div><p class="story-label">sm · 검색</p><UIButton size="sm" class="w-8 px-0" variant="outline" aria-label="검색" :disabled="args.disabled" @click="args.onClick">${searchIcon}</UIButton></div>
+        <div><p class="story-label">lg · 다운로드</p><UIButton size="lg" class="w-12 px-0" variant="ghost" aria-label="다운로드" :disabled="args.disabled" @click="args.onClick">${downloadIcon}</UIButton></div>
+        <div><p class="story-label">destructive · 삭제</p><UIButton class="w-9 px-0" variant="destructive" aria-label="삭제" :disabled="args.disabled" @click="args.onClick">${trashIcon}</UIButton></div>
       </div>
-      <div><p class="story-label">disabled · 추가</p><UIButton size="icon" aria-label="추가 (비활성)" disabled>${plusIcon}</UIButton></div>
+      <div><p class="story-label">disabled · 추가</p><UIButton class="w-9 px-0" aria-label="추가 (비활성)" disabled>${plusIcon}</UIButton></div>
     </div>`,
   }),
 }

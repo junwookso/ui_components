@@ -1,13 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import UINavigationMenu from '../../navigation-menu/UINavigationMenu.vue'
+import type { UINavigationMenuItem } from '../../navigation-menu/types'
 import type { WorkspacePage } from './types'
-defineProps<{ current: string; pages: readonly WorkspacePage[] }>()
+const props = defineProps<{ current: string; pages: readonly WorkspacePage[] }>()
 const emit = defineEmits<{ navigate: [page: WorkspacePage] }>()
+const items = computed(() => props.pages.map(page => ({ key: page.key, label: page.label, routeName: page.key, href: `#${page.key}` })))
+function select(item: UINavigationMenuItem, event: MouseEvent) {
+  if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return
+  event.preventDefault()
+  const page = props.pages.find(page => page.key === item.key)
+  if (page) emit('navigate', page)
+}
 </script>
 <template>
-  <nav aria-label="업무 메뉴" class="flex flex-col gap-1">
-    <a v-for="page in pages" :key="page.key" :href="`#${page.key}`" :aria-current="current === page.key ? 'page' : undefined"
-      class="rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-      :class="current === page.key ? 'bg-selected text-selected-foreground font-semibold underline underline-offset-4' : 'no-underline'"
-      @click.prevent="emit('navigate', page)">{{ page.label }}</a>
-  </nav>
+  <UINavigationMenu label="업무 메뉴" :items="items" :current-route-name="current" @select="select" />
 </template>

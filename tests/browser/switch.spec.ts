@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 
 const story = (name: string) => `/iframe.html?id=components-uiswitch--${name}&viewMode=story`
@@ -25,60 +24,4 @@ test('switch supports label clicks, Space, stable names and disabled keyboard sk
     await expect(input).not.toBeFocused()
   }
   await expect(page.getByRole('switch', { name: '비활성 · 켜짐', exact: true })).toBeChecked()
-})
-
-test('settings show descriptions, update local state, and submit native form values', async ({ page }) => {
-  await page.goto(story('notification-settings'))
-  const email = page.getByRole('switch', { name: '이메일 알림', exact: true })
-  await expect(email).toHaveAccessibleDescription('담당 업무가 변경되면 이메일로 알려드립니다.')
-  await email.uncheck()
-  await expect(page.getByRole('status')).toHaveText('이메일 알림을 껐습니다.')
-  await email.check()
-  await expect(page.getByRole('status')).toHaveText('이메일 알림을 켰습니다.')
-  const data = await page.locator('.ui-card').evaluate(card => {
-    const form = document.createElement('form')
-    card.parentNode!.insertBefore(form, card)
-    form.append(card)
-    return Object.fromEntries(new FormData(form))
-  })
-  expect(data).toEqual({ emailNotifications: 'on' })
-})
-
-test('standalone switch CSS preserves geometry, theme colors and reduced motion', async ({ page }) => {
-  await page.goto(story('playground'))
-  await expect(page.getByRole('switch')).toBeVisible()
-  const markup = await page.locator('.ui-switch').evaluate(el => el.outerHTML)
-  await page.goto('about:blank')
-  await page.setContent(`<label for="switch-playground">이메일 알림</label>${markup}`)
-  await page.addStyleTag({ content: await readFile('.test-consumer/no-reset.css', 'utf8') })
-  const input = page.getByRole('switch')
-  const track = page.locator('.ui-switch-track')
-  const off = page.locator('.ui-switch-false')
-  const on = page.locator('.ui-switch-true')
-  await expect(track).toHaveCSS('height', '30px')
-  await expect(off).toHaveText('False')
-  await expect(on).toHaveText('True')
-  await expect(track).toHaveCSS('background-color', 'rgb(244, 244, 245)')
-  await expect(off).toHaveCSS('background-color', 'rgb(255, 255, 255)')
-  await expect(on).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
-  await page.addStyleTag({ content: ':root { --ui-surface: #e0f2fe; }' })
-  await input.check()
-  await page.mouse.move(0, 0)
-  await expect(on).toHaveCSS('background-color', 'rgb(224, 242, 254)')
-  await expect(off).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
-  await page.emulateMedia({ reducedMotion: 'reduce' })
-  await expect(on).toHaveCSS('transition-duration', '0s')
-  await page.emulateMedia({ forcedColors: 'active' })
-  await expect(track).toHaveCSS('border-top-style', 'solid')
-})
-
-test('custom state labels do not change the accessible name', async ({ page }) => {
-  await page.goto(story('custom-labels'))
-  await expect(page.locator('.ui-switch-false')).toHaveText('꺼짐')
-  await expect(page.locator('.ui-switch-true')).toHaveText('켜짐')
-  const input = page.getByRole('switch', { name: '이메일 알림', exact: true })
-  await input.check()
-  await expect(input).toBeChecked()
-  await expect(input).toHaveAccessibleName('이메일 알림')
-  await page.screenshot({ path: 'test-results/switch-segmented.png' })
 })

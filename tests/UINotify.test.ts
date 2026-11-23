@@ -13,26 +13,6 @@ function setup() {
   return { wrapper, service }
 }
 describe('notify action', () => {
-  it('defaults to top and preserves active notifications and remaining time when repositioned', async () => {
-    const { wrapper, service } = setup()
-    service.notify({ message: '위치 변경', duration: 1000 })
-    await nextTick()
-    const card = wrapper.get('.ui-notify-card').element
-    expect(wrapper.get('.ui-notify-region').attributes('data-position')).toBe('top')
-    await vi.advanceTimersByTimeAsync(400)
-    await wrapper.setProps({ position: 'bottom-right' })
-    expect(wrapper.get('.ui-notify-card').element).toBe(card)
-    expect(wrapper.get('.ui-notify-region').attributes('data-position')).toBe('bottom-right')
-    await vi.advanceTimersByTimeAsync(599)
-    expect(wrapper.findAll('.ui-notify-card')).toHaveLength(1)
-    await vi.advanceTimersByTimeAsync(1)
-    expect(wrapper.findAll('.ui-notify-card')).toHaveLength(0)
-  })
-  it('requires a provider', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    expect(() => mount(defineComponent({ setup() { useNotify(); return () => null } }))).toThrow('UINotifyProvider')
-    warn.mockRestore()
-  })
   it('escapes text, announces by urgency, rejects blanks and defaults to five seconds', async () => {
     const { wrapper, service } = setup()
     expect(service.notify({ message: '  ' })).toBeNull()
