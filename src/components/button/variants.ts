@@ -9,7 +9,7 @@ export const buttonVariants = cva(
       variant: {
         default: 'bg-primary text-primary-foreground enabled:hover:bg-primary-hover enabled:active:bg-primary-pressed',
         secondary: 'bg-secondary text-secondary-foreground enabled:hover:bg-secondary-hover enabled:active:bg-accent-pressed',
-        outline: 'border border-control-border bg-surface text-foreground enabled:hover:bg-accent enabled:hover:text-accent-foreground enabled:active:bg-accent-pressed',
+        outline: 'border border-border bg-surface text-foreground enabled:hover:bg-accent enabled:hover:text-accent-foreground enabled:active:bg-accent-pressed',
         ghost: 'bg-transparent text-foreground enabled:hover:bg-accent enabled:hover:text-accent-foreground enabled:active:bg-accent-pressed',
         destructive: 'bg-destructive text-destructive-foreground enabled:hover:bg-destructive-hover enabled:active:bg-destructive-pressed',
         link: 'bg-transparent text-primary underline-offset-4 enabled:hover:underline enabled:hover:text-primary-hover enabled:active:text-primary-pressed',

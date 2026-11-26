@@ -2,7 +2,11 @@
 
 사내 업무 화면은 빠른 탐색, 정확한 입력, 반복 작업의 일관성을 우선합니다. 서비스는 화면 배치·반응형·비즈니스 동작을 관리하고, 패키지는 컴포넌트의 크기·타이포그래피·상태 표현을 관리합니다. CSS 연결은 [README](./README.md#서비스에-연결하기)를 참고합니다.
 
+관리자 화면을 새로 만들거나 수정할 때는 [관리자 대시보드 패턴](#관리자-대시보드-패턴)에서 화면 구성과 상태별 스타일을 먼저 확인합니다.
+
 ## 크기와 타이포그래피
+
+기본 글꼴은 `Pretendard Variable`입니다. 패키지 CSS에서 jsDelivr의 가변 WOFF2를 불러오며, 다운로드가 지연되거나 실패하면 글꼴 스택의 다음 글꼴을 사용합니다. 서비스는 테마 컨테이너의 `--ui-font-family`로 글꼴 스택을 조정할 수 있습니다. [Pretendard 웹폰트 안내](https://github.com/orioncactus/pretendard#가변-글꼴)
 
 아래 px 값은 루트 글꼴 16px 기준입니다. 표의 높이와 기본 글자 크기는 `rem` 또는 Tailwind 기본 스케일을 사용하므로 서비스의 루트 글꼴 크기에 비례합니다.
 
@@ -13,12 +17,20 @@
 | `lg` | 48px | 터치 중심 또는 넓은 조작 영역 |
 
 - 같은 행의 버튼과 입력은 같은 크기를 사용합니다. 기본 간격은 8px입니다. 아이콘 전용 버튼은 같은 높이 스케일을 사용하고, 정사각형이 필요하면 높이에 맞는 너비를 Tailwind로 지정합니다. SVG는 16px로 표시하며 텍스트가 없는 버튼에는 `aria-label`을 제공합니다.
+- 상단 바(`UITopbar`)의 내부 최소 높이는 3rem(48px)이고 세로 여백은 위아래 각각 0.25rem(4px)입니다. 하단 테두리 1px이 더해지며 콘텐츠는 필요한 경우 여러 줄로 배치됩니다.
+- 하단 바(`UIFooter`)의 내부 최소 높이는 3rem(48px)이고 세로 여백은 위아래 각각 0.5rem(8px)입니다. 상단 테두리 1px이 더해지며 안내 문구와 링크는 필요한 경우 여러 줄로 배치됩니다.
+- `UITabs`의 탭 버튼 사이 간격은 가로·세로 모두 0.125rem(2px)입니다.
 - 기본 컨트롤과 본문은 14px(0.875rem), 카드 제목은 16px, 페이지 제목은 24px, 보조 메타 정보는 12px입니다. 제목의 HTML 계층을 유지하면서 `ui-h1`~`ui-h6`, `ui-title`, `ui-subtitle`, `ui-body`, `ui-body-lg`, `ui-caption`, `ui-label`을 적용합니다. [타이포그래피 클래스](./src/styles/typography.css)
 - 일반 컨트롤과 카드는 모서리 6px를 사용합니다. 간격은 4·8·12·16·24·32px를 출발점으로 삼고, 폼 그룹에는 24px를 기본으로 합니다. 카드 액션은 우측에 취소(`ghost`), 보조(`outline`), 주요(`default`) 순서로 둡니다. 주요 액션은 그룹당 하나입니다.
+- `UIChip`은 기본적으로 모서리 반경 6px의 직사각형(`rect`)을 사용합니다. 알약형은 `shape="pill"`로 지정합니다.
 
 ## 테마
 
 서비스의 CSS에서 `:root` 또는 테마 컨테이너에 `--ui-*` 색상 변수를 재정의합니다. 배경과 그 위의 글자색은 함께 조정합니다. 화면은 중립색을 기본으로 하고, `primary`는 주요 액션과 선택에, 성공·주의·오류에는 각 의미색을 씁니다.
+
+서비스의 브랜드 색을 상단 바에 사용할 때는 `UITopbar`에 `variant="primary"`를 지정합니다. 상단 바의 배경과 기본 글자에 각각 `--ui-primary`와 `--ui-primary-foreground`를 적용합니다. 슬롯에 배치한 버튼과 입력은 각 컴포넌트의 스타일을 따릅니다.
+
+다크 팔레트는 앱 루트나 테마 컨테이너에 `data-ui-color-mode="dark"`를 지정해 적용합니다. 브랜드 색을 바꿀 때는 라이트·다크 모드 각각에서 배경, 글자, 호버·눌림, 포커스 색을 함께 확인합니다. 모달과 알림에도 같은 색상 모드를 적용하려면 해당 컨테이너 안에 배치합니다.
 
 ```css
 :root {
@@ -32,13 +44,38 @@
 | --- | --- |
 | 화면·표면·텍스트 | `--ui-page-background`, `--ui-background`, `--ui-foreground`, `--ui-muted-foreground`, `--ui-surface` |
 | 액션과 선택 | `--ui-primary` / `--ui-primary-foreground`, `--ui-secondary` / `--ui-secondary-foreground`, `--ui-accent` / `--ui-accent-foreground`, `--ui-selected-background` / `--ui-selected-foreground` |
-| 경계·포커스·차폐 | `--ui-border`, `--ui-control-border`, `--ui-control-border-hover`, `--ui-ring`, `--ui-overlay` |
+| 경계·포커스·차폐 | `--ui-border`, `--ui-ring`, `--ui-overlay` |
 | 비활성 | `--ui-disabled-background` / `--ui-disabled-foreground` |
 | 의미색 | `--ui-destructive` / `--ui-destructive-foreground`, `--ui-success-background` / `--ui-success-foreground`, `--ui-warning-background` / `--ui-warning-foreground`, `--ui-info-background` / `--ui-info-foreground` |
 
-기본 색상은 [토큰 소스](./src/styles/tokens.css)에 있습니다. `--ui-surface`를 생략하면 `--ui-background`를 사용합니다. 선택적 상태 변수 `--ui-primary-hover`, `--ui-primary-pressed`, `--ui-secondary-hover`, `--ui-accent-pressed`, `--ui-destructive-hover`, `--ui-destructive-pressed`를 생략하면 현재 테마 색상으로 계산합니다. [Tailwind 매핑](./src/styles/index.css)
+기본 색상은 [토큰 소스](./src/styles/tokens.css)에 있습니다. `--ui-surface`를 생략하면 `--ui-background`를 사용합니다. 선택적 상태 변수 `--ui-primary-hover`, `--ui-primary-pressed`, `--ui-secondary-hover`, `--ui-accent-pressed`, `--ui-destructive-hover`, `--ui-destructive-pressed`를 서비스에서 지정할 수 있습니다. 팔레트에 상태값이 정의되어 있으면 그 값을 사용하고, 그 외에는 현재 테마 색상으로 계산합니다. [Tailwind 매핑](./src/styles/index.css)
 
 일반 텍스트 4.5:1, 포커스 표시 3:1을 프로젝트 검토 기준으로 사용합니다. 일반·hover·선택·비활성·오류를 인접 색상과 함께 확인합니다. Storybook의 neutral은 패키지 기본 테마이며 ocean은 색상 재정의 예제입니다.
+
+### 차트 팔레트
+
+`--ui-chart-1`~`--ui-chart-14`은 차트 종류에 공통으로 쓰는 범주형 색상입니다. `UIBarChart`와 `UILineChart`의 계열, `UIPieChart`의 조각에 같은 순서로 색을 적용합니다. 기본값은 라이트·다크 모드별로 제공하며 서비스 테마에서 토큰을 재정의할 수 있습니다.
+
+IBM Carbon의 범주형 팔레트 14색을 공식 순서로 적용합니다. 범례는 차트와 같은 색을 사용하고, 레이블과 선 모양·마커 등으로 계열을 구분합니다. 업무상 의미가 정해진 색은 화면의 차트 옵션에서 지정합니다. [Carbon 차트 팔레트](https://www.carbondesignsystem.com/building-blocks/data-visualization/color-palettes#categorical-palettes)
+
+### 기본·보조 텍스트
+
+GitHub Primer의 `fgColor-default`와 `fgColor-muted`를 기본값으로 사용합니다. [Primer 텍스트 색상 토큰](https://github.com/primer/primitives/blob/main/src/tokens/functional/color/fgColor.json5)
+
+| 역할 | 패키지 토큰 | 라이트 | 다크 |
+| --- | --- | --- | --- |
+| 기본 | `--ui-foreground` | `#1F2328` | `#F0F6FC` |
+| 보조 | `--ui-muted-foreground` | `#59636E` | `#9198A1` |
+
+- 제목, 본문, 필드·탭·버튼 레이블, 핵심 수치와 작업에 필요한 안내에는 기본색을 사용합니다.
+- 보조색은 부가 설명, 표시용 시각, 메타데이터처럼 우선순위가 낮은 텍스트에 사용합니다. `ui-text-muted` 또는 `text-muted-foreground`로 적용합니다. 시각이나 설명이 판단에 꼭 필요한 경우에는 기본색을 사용합니다.
+- 오류·경고·성공과 강조 배경 위의 글자에는 각 역할에 맞는 전용 색상 토큰을 사용합니다. 보조 텍스트도 일반 크기에서 배경과 4.5:1 이상의 대비를 확보합니다.
+
+### 테두리
+
+카드, 패널, 구분선, 입력, 스위치, 테두리형 버튼의 기본 테두리는 모두 `--ui-border`를 사용합니다. Tailwind에서는 `border-border`를 적용합니다. 기본값은 GitHub Primer의 `borderColor-default`를 따르며 라이트는 `#D1D9E0`, 다크는 `#3D444D`입니다. [Primer 테두리 색상 토큰](https://github.com/primer/primitives/blob/main/src/tokens/functional/color/borderColor.json5)
+
+키보드 포커스는 `--ui-ring` 또는 입력의 포커스 테두리로 표시하고, 오류 테두리는 `--ui-destructive`를 사용합니다.
 
 ## 폼과 액션
 
@@ -54,6 +91,8 @@
 | `UISelect` | 접힌 목록에서 검색 없이 단일 항목 선택 |
 | `UICombobox` | 이름·코드로 검색해 단일 항목 선택 |
 
+스위치 안에서 선택된 상태 레이블은 기본 텍스트 색, 선택되지 않은 상태 레이블은 보조 텍스트 색과 비활성 텍스트 색을 섞은 연한 회색을 사용합니다.
+
 ## 데이터 화면
 
 - 검색 조건의 편집값과 적용값을 구분합니다. 검색 적용·초기화 시 첫 페이지를 표시합니다. URL 공유가 필요하면 적용한 필터·정렬·페이지 중 공유 가능한 값만 넣습니다. 상세에서 돌아올 때 목록을 복원한 후 스크롤과 행 포커스를 복원합니다.
@@ -61,6 +100,38 @@
 - 달력상의 날짜·연월과 실제 발생 시각을 구분합니다. 실제 발생 시각은 서비스 기준 시간대로 표시하고 필요한 경우 시간대를 함께 씁니다. 같은 단위의 수치는 우측 정렬하며 단위·소수점 자리수를 맞춥니다. 미입력·미집계는 숫자 0과 구분합니다. 말줄임한 업무 데이터는 상세 링크나 펼치기로 전체를 읽을 수 있게 합니다.
 
 업무 화면의 조합은 Storybook `Patterns`에서, 서버 조회와 선택 연동은 [README의 데이터 테이블 안내](./README.md#데이터-테이블)에서 확인합니다.
+
+## 관리자 대시보드 패턴
+
+`pnpm storybook`을 실행한 뒤 `Patterns → Admin Dashboard → Dashboard`에서 화면을 확인합니다. 아래 값은 루트 글꼴 16px 기준이며, 이 대시보드의 배치와 색상은 화면 범위의 CSS와 테마 변수로 적용합니다. 공용 컴포넌트의 크기와 테마 토큰은 앞의 기준을 따릅니다. [Storybook 예제](http://localhost:6006/?path=/story/patterns-admin-dashboard--dashboard) · [Vue 구현](./src/stories/examples/UIAdminDashboard.vue) · [Storybook 테마](./.storybook/preview.css)
+
+### 화면 배치와 내비게이션
+
+- 브랜드 색을 적용한 `UITopbar` 아래에 내비게이션과 본문을 배치합니다. 화면 너비가 `64rem` 이상이면 왼쪽에 `18rem` 너비의 2단 메뉴를 표시하고, 메뉴와 본문을 각각 스크롤할 수 있게 합니다. 더 좁은 화면에서는 상단의 ‘메뉴’ 버튼으로 왼쪽 `UIDrawer`를 엽니다. [내비게이션 구현](./src/stories/examples/UIAdminNavigation.vue)
+- 현재 메뉴를 `aria-current="page"`, 굵은 글자, 밑줄과 배경으로 표시합니다. 메뉴에서 본문 영역으로 이동하면 해당 제목에 포커스를 놓습니다. 모바일 메뉴를 연 채 데스크톱 너비로 전환하면 Drawer를 닫고 사이드바의 현재 메뉴에 포커스를 옮깁니다.
+- 본문은 최대 `90rem` 너비로 가운데 배치합니다. 경로와 페이지 제목 아래에 메트릭 카드, 일별·누적 처리 추이와 팀 운영 현황, 요청 상태별 비중, 업무 요청 목록을 배치합니다. 메트릭 카드는 `48rem` 미만에서 2열, 그 이상에서 4열을 사용합니다. 차트와 팀 운영 현황 카드는 같은 기준으로 1열에서 2열로 전환합니다.
+
+데스크톱 사이드바는 다음 색상을 사용합니다. 선택 항목과 일반 항목의 호버 배경은 각각의 상태를 알아볼 수 있게 조정합니다.
+
+| 항목 | 라이트 모드 | 다크 모드 |
+| --- | --- | --- |
+| 사이드바 배경 | `#F2F2F4` | `#2B2B2E` |
+| 선택된 메뉴 배경 | `#FFFFFF` | `#D4D4D8` |
+| 선택된 메뉴 텍스트 | `--ui-primary` | `#1F2328` |
+| 선택되지 않은 메뉴 텍스트 | `--ui-muted-foreground` | `--ui-muted-foreground` |
+
+### 메트릭, 주요 액션과 업무 목록
+
+- 메트릭 카드의 값과 단위는 우측에 정렬하고 기본 텍스트 색을 사용합니다. 숫자에는 `tabular-nums`를 적용합니다. 지표 이름과 설명에는 보조 텍스트 색을 씁니다. 왼쪽 장식 아이콘은 두 모드 모두 배경을 투명하게 두고, 라이트 모드에서는 `--ui-primary`, 다크 모드에서는 `--ui-muted-foreground`를 사용합니다. 장식 아이콘은 `aria-hidden="true"`로 숨깁니다.
+- 처리 추이에는 `UIBarChart`를 사용하며 접수·완료 범례를 화면에서 표시합니다. 차트의 글꼴·축 레이블·격자선은 공통 UI 토큰을 사용합니다. 차트의 접근 가능한 이름에는 일자별 접수와 완료 값이 포함됩니다. 집계 기간을 바꾸면 일별 막대 차트, 누적 접수·완료 선 차트와 기간별 메트릭을 함께 갱신합니다. 요청 상태별 도넛 차트는 전체 요청 목록을 기준으로 집계하고, 요청 등록이나 처리 완료 시 범례의 건수와 비율도 갱신합니다.
+- ‘새 요청 등록’은 페이지 제목 영역의 주요 액션으로 배치합니다. 기본 크기 `UIButton`의 라벨 왼쪽에 16px 더하기 아이콘을 슬롯으로 넣고 버튼 이름은 ‘새 요청 등록’으로 유지합니다. 이 버튼은 등록 `UIDrawer`를 열고 테이블에서 요청 제목을 누르면 상세 `UIDrawer`가 열립니다.
+- 업무 요청 카드의 검색창과 상태 필터는 `default` 크기(높이 36px)로 맞춥니다. `UIDataTable`에는 `search-size="default"`를 전달합니다. 검색창 너비는 최대 `18rem`(288px)이며, 검색 툴바 하단과 테이블 테두리 사이에 `0.5rem`(8px)을 둡니다.
+- 테이블 하단의 왼쪽에 ‘페이지당 행’ 레이블과 선택란을 함께 두고 오른쪽에 페이지 번호와 이전·다음 버튼을 배치합니다. 좁은 화면에서는 하단 조작 요소가 줄바꿈되고 표의 가로 스크롤은 표 영역에 머뭅니다. 상태는 `sm` 크기의 `UIChip`과 상태 문구로 표시하며 기본 모양인 `rect`를 사용합니다.
+
+### 푸터와 확인 항목
+
+- `UIFooter`는 본문 스크롤 영역 끝에 둡니다. 대시보드에서는 배경을 투명하게 하고 상단 테두리를 생략합니다. 안내 문구와 링크의 기본 상태는 `--ui-muted-foreground`를 사용합니다. 높이는 한 줄 배치에서 48px, 너비 360px의 예제에서 문구와 링크가 두 줄로 배치될 때 82px입니다.
+- 화면을 수정한 뒤 라이트·다크 모드에서 메뉴 선택 상태와 텍스트 대비를 확인합니다. 좁은 화면에서는 메뉴 열기와 닫기, 이동 후 포커스, 표의 가로 스크롤을 확인합니다. 데스크톱에서는 사이드바와 본문이 개별적으로 스크롤되고 푸터가 본문 끝에서 보이는지 확인합니다. [대시보드 브라우저 테스트](./tests/browser/admin-dashboard.spec.ts)
 
 ## 접근성과 모션
 

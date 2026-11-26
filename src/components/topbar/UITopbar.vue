@@ -3,7 +3,7 @@ import { cn } from '../../lib/cn'
 import type { UITopbarProps } from './types'
 
 withDefaults(defineProps<UITopbarProps>(), {
-  label: '상단 바', navigationLabel: '주요 메뉴', sticky: false,
+  label: '상단 바', navigationLabel: '주요 메뉴', sticky: false, variant: 'default',
 })
 defineSlots<{
   leading?: () => unknown
@@ -15,7 +15,7 @@ defineSlots<{
 </script>
 
 <template>
-  <header :class="cn('ui-topbar w-full min-w-0', $props.class)" :aria-label="label" :data-sticky="sticky">
+  <header :class="cn('ui-topbar w-full min-w-0', $props.class)" :aria-label="label" :data-sticky="sticky" :data-variant="variant">
     <div class="ui-topbar-inner">
       <div class="ui-topbar-start">
         <div v-if="$slots.leading" class="ui-topbar-leading"><slot name="leading" /></div>

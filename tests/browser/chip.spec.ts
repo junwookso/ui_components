@@ -1,6 +1,13 @@
 import { expect, test } from '@playwright/test'
 const story = (name: string) => `/iframe.html?id=components-uichip--${name}&viewMode=story`
 
+test('chips use rectangular corners by default and support a pill shape', async ({ page }) => {
+  await page.goto(story('shapes'))
+  const chips = page.locator('.ui-chip')
+  await expect(chips.filter({ hasText: '직사각형' })).toHaveCSS('border-radius', '6px')
+  await expect(chips.filter({ hasText: '알약형' })).toHaveCSS('border-radius', '9999px')
+})
+
 test('removal supports keyboard activation and restores focus through the list', async ({ page }) => {
   await page.goto(story('removable'))
   const first = page.getByRole('button', { name: '플랫폼팀 제거' })

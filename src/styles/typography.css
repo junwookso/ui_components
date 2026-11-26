@@ -1,7 +1,7 @@
 @layer components {
   .ui-h1, .ui-h2, .ui-h3, .ui-h4, .ui-h5, .ui-h6, .ui-title, .ui-subtitle, .ui-body, .ui-body-lg, .ui-caption, .ui-label {
     margin: 0;
-    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--ui-font-family);
     letter-spacing: normal;
   }
   .ui-h1 { font-size: 1.5rem; line-height: 2rem; font-weight: 600; }

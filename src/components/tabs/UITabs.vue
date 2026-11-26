@@ -49,7 +49,7 @@ function onFocusout(event: FocusEvent) {
 
 <template>
   <div :class="cn('ui-tabs grid min-w-0 text-foreground', $props.class)" :data-orientation="orientation">
-    <div class="ui-tabs-list flex gap-1" role="tablist" :aria-label="label" :aria-orientation="orientation" @focusout="onFocusout">
+    <div class="ui-tabs-list flex gap-0.5" role="tablist" :aria-label="label" :aria-orientation="orientation" @focusout="onFocusout">
       <button
         v-for="(item, index) in items"
         :id="`${baseId}-tab-${index}`"

@@ -60,7 +60,7 @@ async function remove(index: number) {
         @change="choose"
       />
     </div>
-    <p v-if="accept || maxSize !== undefined" :id="`${id}-constraints`" class="ui-body ui-text-muted [overflow-wrap:anywhere]">
+    <p v-if="accept || maxSize !== undefined" :id="`${id}-constraints`" class="ui-body text-foreground [overflow-wrap:anywhere]">
       <span v-if="accept">허용 형식 {{ accept }}</span>
       <span v-if="accept && maxSize !== undefined"> · </span>
       <span v-if="maxSize !== undefined">파일당 최대 {{ maxSize.toLocaleString('ko-KR') }}바이트</span>

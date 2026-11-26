@@ -12,6 +12,7 @@ describe('UITopbar', () => {
     expect(wrapper.get('.ui-topbar-brand').text()).toBe('<b>포털</b>')
     expect(wrapper.find('b, nav, h1, button').exists()).toBe(false)
     expect(wrapper.attributes('data-sticky')).toBe('false')
+    expect(wrapper.attributes('data-variant')).toBe('default')
   })
   it('preserves semantic slot controls in DOM order and navigation labels', async () => {
     const wrapper = mount(UITopbar, { props: { title: '포털', navigationLabel: '업무 메뉴' }, slots: {
@@ -22,8 +23,9 @@ describe('UITopbar', () => {
     expect(wrapper.get('nav').attributes('aria-label')).toBe('업무 메뉴')
     expect(wrapper.findAll('button, a, input').map(el => el.text() || el.attributes('aria-label'))).toEqual(['메뉴', '홈', '업무', '검색', '계정'])
     expect(wrapper.get('nav a').attributes('aria-current')).toBe('page')
-    await wrapper.setProps({ sticky: true, label: '서비스 헤더' })
+    await wrapper.setProps({ sticky: true, label: '서비스 헤더', variant: 'primary' })
     expect(wrapper.attributes('data-sticky')).toBe('true')
+    expect(wrapper.attributes('data-variant')).toBe('primary')
     expect(wrapper.attributes('aria-label')).toBe('서비스 헤더')
   })
 })

@@ -39,7 +39,7 @@ test('input sizing and packaged CSS work without global reset and honor theme to
   await expect(standalone).toHaveCSS('border-top-width', '1px')
   await expect(standalone).toHaveCSS('font-size', '14px')
   await expect(page.locator('h1')).toHaveCSS('font-size', '32px')
-  await page.addStyleTag({ content: ':root { --ui-control-border: #0369a1; --ui-info-foreground: #0284c7; }' })
+  await page.addStyleTag({ content: ':root { --ui-border: #0369a1; --ui-info-foreground: #0284c7; }' })
   await expect(standalone).toHaveCSS('border-top-color', 'rgb(3, 105, 161)')
   await standalone.focus()
   await expect(standalone).toHaveCSS('height', '36px')
@@ -66,8 +66,10 @@ test('icon input forwards labels and disabled state, and inline forms remain ali
   await input.fill('검색')
   await input.press('Enter')
   await expect(form.getByRole('status')).toContainText('검색')
-  const inputBox = (await input.boundingBox())!
-  const buttonBox = (await form.getByRole('button').boundingBox())!
+  const { inputBox, buttonBox } = await form.evaluate(element => ({
+    inputBox: element.querySelector('input[type="search"]')!.getBoundingClientRect().toJSON(),
+    buttonBox: element.querySelector('button')!.getBoundingClientRect().toJSON(),
+  }))
   expect(inputBox.height).toBe(36)
   expect(buttonBox.height).toBe(inputBox.height)
   expect(inputBox.y).toBe(buttonBox.y)

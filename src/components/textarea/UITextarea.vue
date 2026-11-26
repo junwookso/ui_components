@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TextareaHTMLAttributes } from 'vue'
 import { cn } from '../../lib/cn'
 import type { UITextareaProps } from './types'
 
@@ -10,8 +11,8 @@ const model = defineModel<string>()
 <template>
   <textarea
     v-model="model"
-    :aria-invalid="invalid || undefined"
     v-bind="$attrs"
+    :aria-invalid="invalid || ($attrs['aria-invalid'] as TextareaHTMLAttributes['aria-invalid'])"
     :rows="rows"
     :minlength="minlength"
     :maxlength="maxlength"

@@ -5,7 +5,9 @@ const story = (name: string) => `/iframe.html?id=components-uitabs--${name}&view
 for (const [orientation, next, previous] of [['horizontal', 'ArrowRight', 'ArrowLeft'], ['vertical', 'ArrowDown', 'ArrowUp']] as const) {
   test(`${orientation}: roving focus, explicit activation, panel state and icon alignment`, async ({ page }) => {
     await page.goto(story(orientation))
-    await expect(page.getByRole('tablist')).toHaveAttribute('aria-orientation', orientation)
+    const tablist = page.getByRole('tablist')
+    await expect(tablist).toHaveAttribute('aria-orientation', orientation)
+    await expect(tablist).toHaveCSS('gap', '2px')
     const general = page.getByRole('tab', { name: '기본 정보' })
     const notifications = page.getByRole('tab', { name: '알림 설정' })
     const history = page.getByRole('tab', { name: '변경 이력' })
@@ -43,6 +45,7 @@ for (const [orientation, next, previous] of [['horizontal', 'ArrowRight', 'Arrow
     await expect(general).toHaveCSS('outline-width', '2px')
     await expect(general).toHaveCSS('background-color', 'rgb(255, 255, 255)')
     await expect(notifications).toHaveCSS('background-color', 'rgb(244, 244, 245)')
+    await expect(notifications).toHaveCSS('color', 'rgb(31, 35, 40)')
     await expect(notifications).toBeEnabled()
     const tabBox = (await general.boundingBox())!
     const panelBox = (await page.getByRole('tabpanel', { name: '기본 정보' }).boundingBox())!

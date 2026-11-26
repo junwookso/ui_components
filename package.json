@@ -19,7 +19,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./style.css": "./dist/style.css"
+    "./style.css": "./dist/style.css",
+    "./charts": {
+      "types": "./dist/charts.d.ts",
+      "import": "./dist/charts.js"
+    }
   },
   "scripts": {
     "storybook": "storybook dev -p 6006 --no-open --disable-telemetry",
@@ -32,7 +36,8 @@
   },
   "peerDependencies": {
     "tailwindcss": "^4.3.5",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "echarts": "^6.1.0"
   },
   "dependencies": {
     "@tanstack/vue-table": "8.21.3",
@@ -50,6 +55,7 @@
     "@types/node": "24.19.2",
     "@vitejs/plugin-vue": "6.0.11",
     "@vue/test-utils": "2.5.1",
+    "echarts": "6.1.0",
     "jsdom": "31.0.1",
     "storybook": "10.6.7",
     "tailwindcss": "4.3.5",
@@ -58,5 +64,10 @@
     "vitest": "5.1.0",
     "vue": "3.5.45",
     "vue-tsc": "3.3.14"
+  },
+  "peerDependenciesMeta": {
+    "echarts": {
+      "optional": true
+    }
   }
 }

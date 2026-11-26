@@ -11,7 +11,7 @@ import type { UIDataTableProps } from './types'
 
 const props = withDefaults(defineProps<UIDataTableProps<TData>>(), {
   selectable: false, searchable: false, paginated: true, loading: false, mode: 'client',
-  emptyText: '등록된 데이터가 없습니다.',
+  searchSize: 'sm', emptyText: '등록된 데이터가 없습니다.',
 })
 const emit = defineEmits<{ retry: [] }>()
 const sorting = defineModel<SortingState>('sorting', { default: () => [] })
@@ -113,7 +113,7 @@ function pageSizeChanged(event: Event) {
     <div v-if="searchable || $slots.toolbar" class="ui-data-table-toolbar flex flex-wrap items-end gap-3">
       <div v-if="searchable" class="ui-data-table-search">
         <label :for="`${id}-search`" class="ui-label">검색</label>
-        <UIInput :id="`${id}-search`" v-model="globalFilter" type="search" size="sm" :disabled="loading && !server" :aria-label="`${label} 검색`" placeholder="검색어를 입력하세요" />
+        <UIInput :id="`${id}-search`" v-model="globalFilter" type="search" :size="searchSize" :disabled="loading && !server" :aria-label="`${label} 검색`" placeholder="검색어를 입력하세요" />
       </div>
       <div v-if="$slots.toolbar" class="ui-data-table-actions flex flex-wrap items-center gap-2">
         <slot name="toolbar" :selected-rows="selectedRows" :clear-selection="clearSelection" />
@@ -169,14 +169,18 @@ function pageSizeChanged(event: Event) {
         <template v-else-if="error">{{ error }}</template>
         <template v-else>총 {{ total }}건 중 {{ start }}–{{ end }}건<span v-if="selectable"> · {{ server ? '현재 응답에서' : '전체 데이터 중' }} {{ selectedRows.length }}건 선택</span></template>
       </p>
-      <div v-if="paginated" class="ui-data-table-pagination flex flex-wrap items-center gap-2" role="group" :aria-label="`${label} 페이지 이동`">
-        <label :for="`${id}-page-size`">페이지당 행</label>
-        <select :id="`${id}-page-size`" class="ui-data-table-page-size" :value="safePagination.pageSize" :disabled="blocked" @change="pageSizeChanged">
-          <option v-for="size in pageSizes" :key="size" :value="size">{{ size }}</option>
-        </select>
-        <span>{{ safePagination.pageIndex + 1 }} / {{ pageCount }} 페이지</span>
-        <UIButton variant="outline" size="sm" :disabled="blocked || !table.getCanPreviousPage()" @click="table.previousPage()">이전</UIButton>
-        <UIButton variant="outline" size="sm" :disabled="blocked || !table.getCanNextPage()" @click="table.nextPage()">다음</UIButton>
+      <div v-if="paginated" class="ui-data-table-pagination flex flex-wrap items-center gap-2">
+        <div class="ui-data-table-page-size-field flex items-center gap-2">
+          <label :for="`${id}-page-size`">페이지당 행</label>
+          <select :id="`${id}-page-size`" class="ui-data-table-page-size" :value="safePagination.pageSize" :disabled="blocked" @change="pageSizeChanged">
+            <option v-for="size in pageSizes" :key="size" :value="size">{{ size }}</option>
+          </select>
+        </div>
+        <div class="ui-data-table-page-navigation flex flex-wrap items-center gap-2" role="group" :aria-label="`${label} 페이지 이동`">
+          <span>{{ safePagination.pageIndex + 1 }} / {{ pageCount }} 페이지</span>
+          <UIButton variant="outline" size="sm" :disabled="blocked || !table.getCanPreviousPage()" @click="table.previousPage()">이전</UIButton>
+          <UIButton variant="outline" size="sm" :disabled="blocked || !table.getCanNextPage()" @click="table.nextPage()">다음</UIButton>
+        </div>
       </div>
     </div>
   </div>

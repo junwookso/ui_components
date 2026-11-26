@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, useId } from 'vue'
+import { createDialogBackdrop } from '../../lib/dialog-backdrop'
 import { lockBodyScroll } from '../../lib/scroll-lock'
 import { cn } from '../../lib/cn'
 import { useDialogContext } from './context'
@@ -10,14 +11,9 @@ const { cancel, closeOnBackdrop } = useDialogContext<unknown, unknown>()
 const dialog = ref<HTMLDialogElement>()
 const id = useId()
 let releaseScroll: (() => void) | undefined
-let outsidePress = false
-function outside(event: MouseEvent) {
-  const rect = dialog.value!.getBoundingClientRect()
-  return event.target === dialog.value && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)
-}
+const backdrop = createDialogBackdrop()
 function backdropClick(event: MouseEvent) {
-  if (closeOnBackdrop && outsidePress && outside(event)) cancel('backdrop')
-  outsidePress = false
+  if (backdrop.click(event) && closeOnBackdrop) cancel('backdrop')
 }
 onMounted(() => {
   dialog.value!.showModal()
@@ -33,7 +29,7 @@ onBeforeUnmount(() => {
   <dialog ref="dialog" :class="cn('ui-dialog', $props.class)" :aria-labelledby="`${id}-title`"
     :aria-describedby="description ? `${id}-description` : undefined" aria-modal="true"
     @cancel.prevent="cancel('escape')" @close="cancel()"
-    @pointerdown="outsidePress = outside($event)" @click="backdropClick">
+    @pointerdown="backdrop.pointerDown" @pointercancel="backdrop.reset" @click="backdropClick">
     <header class="ui-dialog-header">
       <h2 :id="`${id}-title`" class="ui-dialog-title ui-title">{{ title }}</h2>
       <p v-if="description" :id="`${id}-description`" class="ui-dialog-description ui-subtitle ui-text-muted">{{ description }}</p>

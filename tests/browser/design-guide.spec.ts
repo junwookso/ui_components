@@ -9,6 +9,11 @@ for (const theme of ['neutral', 'ocean']) {
     await expect(page.locator('.ui-preview')).toHaveCSS('background-color', 'rgb(244, 244, 245)')
     await expect(page.locator('.ui-card').first()).toHaveCSS('background-color', 'rgb(255, 255, 255)')
     await expect(page.locator('.ui-card-header').first()).toHaveCSS('border-bottom-width', '0px')
+    const input = page.locator('#guide-name')
+    await expect(input).toHaveCSS('border-top-color', 'rgb(209, 217, 224)')
+    await input.focus()
+    await expect(input).toHaveCSS('border-top-width', '2px')
+    await expect(input).toHaveCSS('border-top-color', 'rgb(30, 64, 175)')
     const ratios = await page.evaluate(() => {
       const ctx = document.createElement('canvas').getContext('2d')!
       function rgb(color: string) {
@@ -33,7 +38,7 @@ for (const theme of ['neutral', 'ocean']) {
       return {
         primary: contrast(button.color, button.backgroundColor),
         input: contrast(input.color, input.backgroundColor),
-        boundary: contrast(input.borderTopColor, input.backgroundColor),
+        focus: contrast(input.borderTopColor, input.backgroundColor),
         help: contrast(muted.color, preview.backgroundColor),
         statuses: ['success', 'warning', 'info'].map(name => {
           const style = styles(`.design-feedback-${name}`)
@@ -44,25 +49,30 @@ for (const theme of ['neutral', 'ocean']) {
     expect(ratios.primary).toBeGreaterThanOrEqual(4.5)
     expect(ratios.input).toBeGreaterThanOrEqual(4.5)
     expect(ratios.help).toBeGreaterThanOrEqual(4.5)
-    expect(ratios.boundary).toBeGreaterThanOrEqual(3)
+    expect(ratios.focus).toBeGreaterThanOrEqual(3)
     ratios.statuses.forEach(value => expect(value).toBeGreaterThanOrEqual(4.5))
     await page.setViewportSize({ width: 375, height: 900 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   })
 }
 
-test('nested primary override derives states and surface override applies across components', async ({ page }) => {
+test('nested primary, surface and border overrides apply across components', async ({ page }) => {
   await page.goto(story)
   await page.locator('.ui-preview').evaluate(el => {
     const element = el as HTMLElement
     element.style.setProperty('--ui-primary', '#0369a1')
     element.style.setProperty('--ui-surface', '#f0f9ff')
+    element.style.setProperty('--ui-border', '#64748b')
   })
   const save = page.getByRole('button', { name: '저장하기', exact: true })
   await expect(save).toHaveCSS('background-color', 'rgb(3, 105, 161)')
   await save.hover()
   await expect(save).not.toHaveCSS('background-color', 'rgb(3, 105, 161)')
   await expect(page.locator('.ui-card').first()).toHaveCSS('background-color', 'rgb(240, 249, 255)')
+  await expect(page.locator('.ui-card').first()).toHaveCSS('border-top-color', 'rgb(100, 116, 139)')
   await expect(page.locator('#guide-name')).toHaveCSS('background-color', 'rgb(240, 249, 255)')
-  await expect(page.getByRole('button', { name: '미리보기', exact: true })).toHaveCSS('background-color', 'rgb(240, 249, 255)')
+  await expect(page.locator('#guide-name')).toHaveCSS('border-top-color', 'rgb(100, 116, 139)')
+  const previewButton = page.getByRole('button', { name: '미리보기', exact: true })
+  await expect(previewButton).toHaveCSS('background-color', 'rgb(240, 249, 255)')
+  await expect(previewButton).toHaveCSS('border-top-color', 'rgb(100, 116, 139)')
 })

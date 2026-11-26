@@ -5,16 +5,23 @@ import UIButton from '../button/UIButton.vue'
 
 const meta = {
   title: 'Components/UIChip', component: UIChip,
-  args: { label: '플랫폼팀', variant: 'default', size: 'default', removable: false, disabled: false },
+  args: { label: '플랫폼팀', variant: 'default', size: 'default', shape: 'rect', removable: false, disabled: false },
   argTypes: {
     variant: { control: 'select', options: ['default', 'outline', 'primary', 'success', 'warning', 'info', 'destructive'] },
     size: { control: 'select', options: ['sm', 'default'] },
+    shape: { control: 'select', options: ['rect', 'pill'] },
   },
 } satisfies Meta<typeof UIChip>
 export default meta
 type Story = StoryObj<typeof meta>
 export const Playground: Story = {
-  parameters: { docs: { description: { story: '기본 Chip은 filled 배경과 1px 테두리를 함께 표시합니다.' } } },
+  parameters: { docs: { description: { story: '기본 Chip은 모서리 반경 6px의 직사각형이며, 채운 배경과 1px 테두리를 표시합니다.' } } },
+}
+export const Shapes: Story = {
+  render: () => ({
+    components: { UIChip },
+    template: '<div class="flex flex-wrap items-center gap-2"><UIChip label="직사각형" /><UIChip label="알약형" shape="pill" /></div>',
+  }),
 }
 export const Variants: Story = {
   render: () => ({

@@ -6,13 +6,26 @@ import UIInput from '../input/UIInput.vue'
 
 const meta = {
   title: 'Layout/UITopbar', component: UITopbar,
-  args: { title: '업무 포털', sticky: false },
+  args: { title: '업무 포털', sticky: false, variant: 'default' },
   parameters: { layout: 'fullscreen' },
   render: args => ({ components: { UITopbar }, setup: () => ({ args }), template: '<UITopbar v-bind="args" />' }),
 } satisfies Meta<typeof UITopbar>
 export default meta
 type Story = StoryObj<typeof meta>
 export const Playground: Story = {}
+export const Primary: Story = {
+  args: { variant: 'primary' },
+  render: args => ({
+    components: { UITopbar },
+    setup: () => ({ args }),
+    template: `<div>
+      <UITopbar v-bind="args">
+        <template #navigation><a href="#primary-overview" aria-current="page">운영 현황</a></template>
+      </UITopbar>
+      <main id="primary-overview" class="p-6"><h1 class="ui-h1">운영 현황</h1></main>
+    </div>`,
+  }),
+}
 export const Workspace: Story = {
   render: args => ({
     components: { UITopbar, UIButton, UIInput },

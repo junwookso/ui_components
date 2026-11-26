@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { h } from 'vue'
 import { describe, expect, it } from 'vitest'
-import { UIFormField } from '../src'
+import { UIDatePicker, UIFormField, UITimePicker } from '../src'
 import type { UIFormFieldControlAttrs } from '../src'
 
 function renderInput({ controlAttrs }: { controlAttrs: UIFormFieldControlAttrs }) {
@@ -51,5 +51,20 @@ describe('UIFormField', () => {
     await wrapper.setProps({ description: '' })
     expect(input.attributes('aria-describedby')).toBeUndefined()
     expect(wrapper.find('p').exists()).toBe(false)
+  })
+
+  it.each([UIDatePicker, UITimePicker])('passes field errors through native date and time controls (%#)', async (Control) => {
+    const wrapper = mount(UIFormField, {
+      props: { label: '일정' },
+      slots: { default: ({ controlAttrs }: { controlAttrs: UIFormFieldControlAttrs }) => h(Control, controlAttrs) },
+    })
+    const input = wrapper.get('input')
+    await wrapper.setProps({ error: '일정을 확인해 주세요.' })
+    expect(input.attributes('aria-invalid')).toBe('true')
+    expect(input.attributes('aria-describedby')).toBe(wrapper.get('.text-destructive').element.id)
+
+    await wrapper.setProps({ error: undefined })
+    expect(input.attributes('aria-invalid')).toBeUndefined()
+    expect(input.attributes('aria-describedby')).toBeUndefined()
   })
 })

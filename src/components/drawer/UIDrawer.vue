@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import UIButton from '../button/UIButton.vue'
 import { cn } from '../../lib/cn'
+import { createDialogBackdrop } from '../../lib/dialog-backdrop'
 import { lockBodyScroll } from '../../lib/scroll-lock'
 import type { UIDrawerDismissReason, UIDrawerProps } from './types'
 
@@ -13,13 +14,13 @@ const dialog = ref<HTMLDialogElement>()
 const id = useId()
 let releaseScroll: (() => void) | undefined
 let trigger: HTMLElement | null = null
-let outsidePress = false
+const backdrop = createDialogBackdrop()
 function restore() {
   releaseScroll?.()
   releaseScroll = undefined
   if (trigger?.isConnected) trigger.focus()
   trigger = null
-  outsidePress = false
+  backdrop.reset()
 }
 function sync() {
   const element = dialog.value
@@ -42,10 +43,6 @@ function nativeClose() {
   // A delayed close event from a previous opening must not close a reopened drawer.
   if (!dialog.value?.open) dismiss('native')
 }
-function outside(event: MouseEvent) {
-  const rect = dialog.value!.getBoundingClientRect()
-  return event.target === dialog.value && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)
-}
 watch(open, sync, { flush: 'post' })
 onMounted(sync)
 onBeforeUnmount(() => { dialog.value?.close(); restore() })
@@ -55,8 +52,8 @@ onBeforeUnmount(() => { dialog.value?.close(); restore() })
   <dialog ref="dialog" :class="cn('ui-drawer', $props.class)" :data-side="side" :data-size="size"
     :aria-labelledby="`${id}-title`" :aria-describedby="description ? `${id}-description` : undefined" aria-modal="true"
     @cancel.prevent="dismiss('escape')" @close="nativeClose"
-    @pointerdown="outsidePress = outside($event)" @pointercancel="outsidePress = false"
-    @click="closeOnBackdrop && outsidePress && outside($event) && dismiss('backdrop'); outsidePress = false">
+    @pointerdown="backdrop.pointerDown" @pointercancel="backdrop.reset"
+    @click="backdrop.click($event) && closeOnBackdrop && dismiss('backdrop')">
     <template v-if="open">
       <header class="ui-drawer-header">
         <div class="ui-drawer-heading"><h2 :id="`${id}-title`" class="ui-title">{{ title }}</h2><p v-if="description" :id="`${id}-description`" class="ui-drawer-description ui-subtitle ui-text-muted">{{ description }}</p></div>

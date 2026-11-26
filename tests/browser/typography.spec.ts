@@ -14,6 +14,7 @@ test('type scale follows the root font size without Preflight', async ({ page })
   await page.addStyleTag({ content: await readFile('.test-consumer/no-reset.css', 'utf8') })
   for (const [name, size, line, weight] of scale) {
     const el = page.locator(`[data-sample="${name}"]`)
+    await expect(el).toHaveCSS('font-family', /^"Pretendard Variable",/)
     await expect(el).toHaveCSS('font-size', `${size}px`)
     await expect(el).toHaveCSS('line-height', `${line}px`)
     await expect(el).toHaveCSS('font-weight', `${weight}`)

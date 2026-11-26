@@ -5,6 +5,7 @@ export interface UIChipProps {
   label: string
   variant?: 'default' | 'outline' | 'primary' | 'success' | 'warning' | 'info' | 'destructive'
   size?: 'sm' | 'default'
+  shape?: 'rect' | 'pill'
   removable?: boolean
   disabled?: boolean
   /** Defaults to `${label} 제거`. */

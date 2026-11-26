@@ -1,7 +1,8 @@
 @import "tailwindcss" source("../src");
 @import "../src/styles/index.css";
 
-body { font-family: ui-sans-serif, system-ui, sans-serif; }
+body { font-family: var(--ui-font-family); }
+.chart-story-preview { width: min(32rem, calc(100vw - 6rem)); }
 .ui-preview { padding: 2rem; background: var(--ui-page-background); color: var(--ui-foreground); }
 .ui-preview[data-ui-theme="ocean"] {
   --ui-primary: #0369a1;
@@ -15,6 +16,35 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; }
   --ui-selected-background: #e0f2fe;
   --ui-selected-foreground: #075985;
   --ui-ring: #0369a1;
+}
+.ui-preview[data-ui-theme="ocean"] [data-ui-color-mode="dark"] {
+  --ui-primary: #0875af;
+  --ui-primary-hover: #157db6;
+  --ui-primary-pressed: #066a9f;
+  --ui-selected-background: #143651;
+  --ui-selected-foreground: #bae6fd;
+  --ui-ring: #7dd3fc;
+}
+.admin-dashboard-theme:not([data-ui-color-mode="dark"]) {
+  --ui-page-background: #ffffff;
+}
+.ui-preview[data-ui-theme="neutral"] .admin-dashboard-theme {
+  --ui-primary: #344e78;
+  --ui-primary-foreground: #ffffff;
+  --ui-primary-hover: #2d4369;
+  --ui-primary-pressed: #243757;
+  --ui-selected-background: #e5ebf7;
+  --ui-selected-foreground: #2d4369;
+  --ui-ring: #526b97;
+}
+.ui-preview[data-ui-theme="neutral"] .admin-dashboard-theme[data-ui-color-mode="dark"] {
+  --ui-primary: #4f6b96;
+  --ui-primary-hover: #55729e;
+  --ui-primary-pressed: #5a76a2;
+  --ui-selected-background: #263750;
+  --ui-selected-foreground: #d9e5fa;
+  --ui-ring: #8eabda;
+  --admin-link-color: #b7cbef;
 }
 .story-row { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
 .story-grid { display: grid; gap: 1.5rem; }

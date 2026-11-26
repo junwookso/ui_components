@@ -78,3 +78,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Pretendard Variable
+
+The default UI font is loaded from jsDelivr. Pretendard is copyright © 2021 Kil Hyung-jin and is available under the SIL Open Font License, Version 1.1. [Pretendard v1.3.9 license](https://github.com/orioncactus/pretendard/blob/v1.3.9/LICENSE)
+
+## Apache ECharts
+
+UIBarChart uses [Apache ECharts](https://echarts.apache.org/) as an optional peer dependency. ECharts is available under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).

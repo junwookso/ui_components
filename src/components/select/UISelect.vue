@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { SelectHTMLAttributes } from 'vue'
 import { cn } from '../../lib/cn'
+import { inputBaseClass, inputSizeClasses } from '../../lib/input-classes'
 import type { UISelectProps } from './types'
 
 defineOptions({ inheritAttrs: false })
@@ -10,11 +11,6 @@ withDefaults(defineProps<UISelectProps>(), {
 })
 const model = defineModel<string>()
 const selection = computed({ get: () => model.value ?? '', set: (value: string) => { model.value = value } })
-const sizes = {
-  sm: 'h-8 px-3 py-1 focus:px-[calc(0.75rem-1px)] focus:py-[calc(0.25rem-1px)]',
-  default: 'h-9 px-3 py-1.5 focus:px-[calc(0.75rem-1px)] focus:py-[calc(0.375rem-1px)]',
-  lg: 'h-12 px-4 py-3 focus:px-[calc(1rem-1px)] focus:py-[calc(0.75rem-1px)]',
-}
 </script>
 
 <template>
@@ -26,8 +22,9 @@ const sizes = {
     :required="required"
     :aria-invalid="invalid || ($attrs['aria-invalid'] as SelectHTMLAttributes['aria-invalid'])"
     :class="cn(
-      'ui-input ui-select block w-full min-w-0 rounded-md border focus:border-2 bg-surface text-sm text-foreground motion-safe:transition-colors disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground',
-      sizes[size],
+      inputBaseClass,
+      'ui-select block motion-safe:transition-colors',
+      inputSizeClasses[size],
       $props.class,
     )"
   >

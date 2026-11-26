@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import type { InputHTMLAttributes } from 'vue'
+import { inputBaseClass, inputSizeClasses } from '../../lib/input-classes'
 import type { UINumberInputProps } from './types'
 
+defineOptions({ inheritAttrs: false })
 withDefaults(defineProps<UINumberInputProps>(), { step: 1 })
 const model = defineModel<number | null>()
 
@@ -13,7 +16,7 @@ function update(event: Event) {
 <template>
   <input
     type="number"
-    class="ui-input block h-9 w-full min-w-0 rounded-md border bg-surface px-3 py-1.5 text-sm text-foreground focus:border-2 focus:px-[calc(0.75rem-1px)] focus:py-[calc(0.375rem-1px)] read-only:bg-secondary disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground"
+    :class="[inputBaseClass, 'block read-only:bg-secondary', inputSizeClasses.default]"
     :value.prop="model ?? ''"
     :min="min"
     :max="max"
@@ -21,7 +24,8 @@ function update(event: Event) {
     :disabled="disabled"
     :readonly="readonly"
     :required="required"
-    :aria-invalid="invalid || undefined"
     @input="update"
+    v-bind="$attrs"
+    :aria-invalid="invalid || ($attrs['aria-invalid'] as InputHTMLAttributes['aria-invalid'])"
   />
 </template>
